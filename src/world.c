@@ -870,6 +870,10 @@ void FirstFrame()
 	RegisterCvarEx("k_spm_glow", "0");
 	RegisterCvarEx("k_spm_custom_model", "0");
 	RegisterCvar("k_entityfile");
+// { pause
+	RegisterCvarEx("k_pause_max_requests", "3");
+	RegisterCvarEx("k_pause_duration", "300");
+// }
 // { hoonymode
 	RegisterCvarEx("k_hoonymode", "0");
 	RegisterCvarEx("k_hoonyrounds", "6");
@@ -1891,7 +1895,9 @@ void StartFrame(int time)
 
 	TeamplayGameTick();
 
-	WillPause();
+	//WillPause();
+
+	PauseTick(time);
 }
 
 // Check the same spawnflags as items only visible in DM for monsters as well.

@@ -8333,46 +8333,17 @@ void setTeleportCap()
 
 // }
 
-float when_to_pause;
-int when_to_unpause;
-int pauseduration;
-int pauses_remaining;
-char pause_name[50];
+void TogglePause() {
+	int isPaused = (int)cvar("sv_paused");
 
-void PausedTic(int duration)
-{
-	pauseduration = duration;
-	gedict_t *p;
-	int time = 0;
-	static int prevtime = 0;
-
-	if (when_to_unpause && when_to_unpause > duration)
-	{
-		time = max(0, (when_to_unpause - duration) / 1000) + 1;
-
-		G_cp2all("%s\n\n%d", "unpausing", time);
-
-		if (time != prevtime) {
-			for (p = world; (p = find_client(p));)
-			{
-				stuffcmd(p, "play buttons/switch04.wav\n");
-			}
-
-			prevtime = time;
-		}
-	}
-
-	// Unpause on schedule, or if the game has ended for some reason
-	if ((!k_matchLess && match_in_progress != 2)
-			|| (when_to_unpause && duration >= when_to_unpause))
-	{
-		when_to_unpause = pauseduration = 0; // reset our globals
-		G_cp2all(" ");	// clear centerprint
-		G_bprint(2, "game unpaused\n");
-		trap_setpause(0);
+	if (isPaused) {
+		UnpauseMatch();
+	} else {
+		PauseMatch();	
 	}
 }
 
+/*
 void TogglePause()
 {
 	int minutes, seconds;
@@ -8452,42 +8423,8 @@ void TogglePause()
 		pauses_remaining = self->k_pauseRequests;
 	}
 }
+*/
 
-void WillPause()
-{
-	gedict_t *p;
-	int time = when_to_pause - g_globalvars.time+1;
-	static int prevtime = 0;
-
-	if (!when_to_pause)
-	{
-		return;
-	}
-
-	if (time > 0)
-	{
-		if (time != prevtime) {
-			for (p = world; (p = find_client(p));)
-			{	
-				stuffcmd(p, "play buttons/switch04.wav\n");
-			}
-
-			prevtime = time;
-		}
-
-		G_cp2all("%s\n\n%d", "pausing", time);
-
-		return;
-	}
-	G_cp2all(" ");	// clear centerprint
-	when_to_pause = 0;
-
-	pauseduration = when_to_unpause = 0; // reset our globals
-
-	G_bprint(2, "%s paused the game. He has %d remaining request(s).\n", pause_name,
-					pauses_remaining);
-	trap_setpause(1);
-}
 
 void ToggleArena()
 {

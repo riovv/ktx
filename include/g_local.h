@@ -516,7 +516,6 @@ void ClientDisconnect();
 void PlayerPreThink();
 void BothPostThink(); // <- called for player and spec
 void PlayerPostThink();
-qbool PlayerCanPause();
 void SuperDamageSound();
 
 gedict_t* SelectSpawnPoint(char *spawnname);
@@ -564,6 +563,9 @@ float CountRTeams();
 qbool isCanStart(gedict_t *s, qbool forceMembersWarn);
 void StartTimer();
 void StopTimer(int removeDemo);
+void PauseTick(int time);
+void PauseMatch();
+void UnpauseMatch();
 
 char* WpName(weaponName_t wp);
 
@@ -816,7 +818,6 @@ void vote_check_all(void);
 //#define OV_KICKUNAUTHED ( VOTE_FOFS (kick_unauthed) )
 #define OV_SWAPALL ( VOTE_FOFS ( swapall ) )
 #define MAX_RPICKUP_RECUSION 3
-#define MAX_PAUSE_REQUESTS 3
 
 void ElectThink();
 void AbortElect();
@@ -913,6 +914,7 @@ qbool VoteMapSpecific(char *map);
 
 void EndMatch(float skip_log);
 void StatsToFile(void);
+#define PAUSE_COUNTDOWN 5
 
 // grapple.c
 void GrappleThrow();

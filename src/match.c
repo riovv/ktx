@@ -971,7 +971,7 @@ static void SM_PrepareClients()
 
 		k_respawn(p, false);
 
-		p->k_pauseRequests = MAX_PAUSE_REQUESTS;
+		p->k_pauseRequests = (int)cvar("k_pause_max_requests");
 	}
 
 	initial_match_spawns = false;
@@ -2902,4 +2902,234 @@ void PlayerBreak()
 	}
 
 	vote_check_break();
+}
+
+// PAUSE
+// Called by a player to pause the match. Only works in non-matchless modes.
+// Each player has a limited number of pause requests. In team games these are shared.
+// Only the player or the team who paused, may unpause the match.
+
+// { pause related
+// Who
+gedict_t *pausePlayer;
+
+// When
+int pausewhen;
+int pausetime = 0;
+// }
+
+
+qbool isPausable (gedict_t *pp) 
+{
+	qbool is_pausable = false;
+	gedict_t *p;
+
+	// Admin can always pause
+	// TODO: Handle admin info
+	if (is_adm(self))
+	{
+		is_pausable = true;
+		return is_pausable;
+	}
+
+	// Is already paused, can the player unpause?
+	if (cvar("sv_paused"))
+	{
+		// The game is already being unpaused
+		if (pausewhen - pausetime <= PAUSE_COUNTDOWN) 
+		{
+			G_sprint(self, 2, "The match is already unpaused.\n");
+			return is_pausable;
+		}
+
+		// In team games, only members of the pausing team can unpause
+		if (isTeam() || isCTF()) 
+		{
+			if (getteam(self) != getteam(pausePlayer))
+			{
+				return is_pausable;
+			}
+		}
+		// Otherwise only the player who paused can unpause
+		else if (self != pausePlayer)
+		{
+			return is_pausable;
+		}
+
+		is_pausable = true;
+		return is_pausable;
+	}
+	// Not paused, can the player pause?
+	else {
+		// Pausing is not allowed
+		if (!cvar("pausable") || k_matchLess || (!k_matchLess && match_in_progress != 2) || match_over) {
+			G_sprint(self, 2, "Pause match not allowed.\n");
+			return is_pausable;
+		}
+
+		// Timeleft of the round is less than the pause countdown
+		if (cvar("timelimit") && ((int)cvar("timelimit") * 60) - (g_globalvars.time - match_start_time) <= PAUSE_COUNTDOWN + 1)
+		{
+			G_sprint(self, 2, "Pause match not allowed.\n");
+			return is_pausable;
+		}
+
+		// Match is already paused, or being paused/unpaused right now
+		if (pausewhen)
+		{
+			G_sprint(self, 2, "The match is already paused.\n");
+			return is_pausable;
+		}
+
+		// Check if the player has any pauses remaining
+		// In team modes, the number of pause requests are shared
+		// Ensure pausing player has the least number of pauses remaining
+		if (isTeam() || isCTF())
+		{
+			for (p = world; (p = find_plr_same_team(p, getteam(self)));)
+			{
+				self->k_pauseRequests = min(self->k_pauseRequests, p->k_pauseRequests);
+			}	
+		} 
+
+		// Player or Team has no pauses remaining
+		if (self->k_pauseRequests < 1)
+		{
+			G_sprint(self, 2, "No remaining pauses.\n");
+			return is_pausable;
+		}
+	}
+
+	is_pausable = true;
+	return is_pausable;
+}
+
+void PauseTick (int time) 
+{
+	gedict_t *p;
+	static int prevsec = 0;
+	int seconds = pausetime = max(0, time / 1000);
+	int timeleft = pausewhen - seconds;
+
+	if (seconds != prevsec) {
+		//G_bprint(2, "State: %0.2f, Time: %d, Pause: %d, Left: %d\n", cvar("sv_paused"), time, pausewhen, timeleft);
+	}
+
+	// Someone has initiated a match pause
+	// Pause on schedule
+	if (!cvar("sv_paused") && pausewhen) {
+		if (timeleft <= 0) {
+			// Pause the match
+			prevsec = 0;
+			pausetime = 0;
+			pausewhen = pausetime + (int)cvar("k_pause_duration");
+
+			G_bprint(2, "%s\n", redtext("The match has paused!"));
+			
+			trap_setpause(1);
+			return;
+		}
+		else if (timeleft <= PAUSE_COUNTDOWN) {
+			G_cp2all(
+				"%s: %s\n\n%s %s has paused the match\n", redtext("Pausing in"),
+				dig3(timeleft), (isTeam() || isCTF()) ? getteam(pausePlayer) : "", pausePlayer->netname
+			);
+
+			if (seconds != prevsec) {
+				for (p = world; (p = find_client(p));)
+				{
+					stuffcmd(p, "play buttons/switch04.wav\n");
+				}
+			}
+		}
+	} 
+	// Match is paused or being unpaused
+	else if (cvar("sv_paused") && pausewhen)
+	{
+		int min = max(0, timeleft / 60);
+		int sec = max(0, timeleft % 60);
+
+		if (timeleft <= 0) 
+		{
+			// Unpause the match
+			prevsec = 0;
+			pausewhen = 0;
+			pausePlayer = NULL;
+
+			G_cp2all(" ");
+			G_bprint(2, "%s\n", redtext("The match has resumed!"));
+
+			trap_setpause(0);
+			return;
+		}
+		// Match is paused
+		else if (timeleft > PAUSE_COUNTDOWN) 
+		{
+			G_cp2all(
+				"%02d:%02d\n\n%s %s has paused the match \n(%d remaining)\n",
+				min, sec, (isTeam() || isCTF()) ? getteam(pausePlayer) : "", pausePlayer->netname, pausePlayer->k_pauseRequests
+			);	
+		}
+		// Start match unpause
+		else if (timeleft <= PAUSE_COUNTDOWN) 
+		{
+			G_cp2all(
+				"%s: %s\n\n%s %s unpaused the match\n",
+				redtext("Resuming in"), dig3(sec), (isTeam() || isCTF()) ? getteam(pausePlayer) : "", pausePlayer->netname
+			);
+
+			if (seconds != prevsec) {
+				for (p = world; (p = find_client(p));)
+				{
+					stuffcmd(p, "play buttons/switch04.wav\n");
+				}
+			}
+		}
+	}
+
+	prevsec = seconds;
+}
+
+void PauseMatch()
+{
+	gedict_t *p;
+
+	if (!isPausable(self))
+	{
+		return;
+	}
+
+	// Pause in a couple of seconds
+	pausewhen = g_globalvars.time + PAUSE_COUNTDOWN + 1;
+
+	// Reduce pauses remaining
+	self->k_pauseRequests = max(0, self->k_pauseRequests - 1);
+
+	// In team games, players share the number of pause requests
+	// Ensure the team mates have the same number of reduced pauses remaining
+	if (isTeam() || isCTF())
+	{
+		for (p = world; (p = find_plr_same_team(p, getteam(self)));)
+		{
+			p->k_pauseRequests = min(self->k_pauseRequests, p->k_pauseRequests);
+		}	
+	}
+
+	G_bprint(2, "%s %s\n", self->netname, redtext("has initiated a pause"));
+
+	// Set globals about who, when and how many pauses are remaining
+	pausePlayer = self;
+}
+
+void UnpauseMatch()
+{
+	if (!isPausable(self))
+	{
+		return;
+	}
+
+	// Unpause in a couple of seconds
+	pausewhen = pausetime + PAUSE_COUNTDOWN + 1;
+
+	G_bprint(2, "%s %s\n", self->netname, redtext("has unpaused the match"));
 }

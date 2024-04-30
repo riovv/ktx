@@ -420,7 +420,7 @@ intptr_t VISIBILITY_VISIBLE vmMain(
 		case GAME_PAUSED_TIC:
 			// called every frame when the game is paused
 			ClearGlobals();
-			PausedTic(arg0);
+			PauseTick(arg0);
 
 			return 0;
 
