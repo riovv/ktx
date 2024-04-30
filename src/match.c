@@ -3022,7 +3022,7 @@ void PauseTick (int time)
 			// Pause the match
 			prevsec = 0;
 			pausetime = 0;
-			pausewhen = pausetime + (int)cvar("k_pause_duration");
+			pausewhen = cvar("k_pause_duration") ? pausetime + (int)cvar("k_pause_duration") : 0;
 
 			G_bprint(2, "%s\n", redtext("The match has paused!"));
 			
@@ -3044,46 +3044,57 @@ void PauseTick (int time)
 		}
 	} 
 	// Match is paused or being unpaused
-	else if (cvar("sv_paused") && pausewhen)
+	else if (cvar("sv_paused"))
 	{
-		int min = max(0, timeleft / 60);
-		int sec = max(0, timeleft % 60);
+		// If we have a pause duration or unpause countdown
+		if (pausewhen) {
+			int min = max(0, timeleft / 60);
+			int sec = max(0, timeleft % 60);
 
-		if (timeleft <= 0) 
-		{
-			// Unpause the match
-			prevsec = 0;
-			pausewhen = 0;
-			pausePlayer = NULL;
+			if (timeleft <= 0) 
+			{
+				// Unpause the match
+				prevsec = 0;
+				pausewhen = 0;
+				pausePlayer = NULL;
 
-			G_cp2all(" ");
-			G_bprint(2, "%s\n", redtext("The match has resumed!"));
+				G_cp2all(" ");
+				G_bprint(2, "%s\n", redtext("The match has resumed!"));
 
-			trap_setpause(0);
-			return;
-		}
-		// Match is paused
-		else if (timeleft > PAUSE_COUNTDOWN) 
-		{
-			G_cp2all(
-				"%02d:%02d\n\n%s %s has paused the match \n(%d remaining)\n",
-				min, sec, (isTeam() || isCTF()) ? getteam(pausePlayer) : "", pausePlayer->netname, pausePlayer->k_pauseRequests
-			);	
-		}
-		// Start match unpause
-		else if (timeleft <= PAUSE_COUNTDOWN) 
-		{
-			G_cp2all(
-				"%s: %s\n\n%s %s unpaused the match\n",
-				redtext("Resuming in"), dig3(sec), (isTeam() || isCTF()) ? getteam(pausePlayer) : "", pausePlayer->netname
-			);
+				trap_setpause(0);
+				return;
+			}
+			// Match is paused
+			else if (timeleft > PAUSE_COUNTDOWN) 
+			{
+				G_cp2all(
+					"%02d:%02d\n\n%s %s has paused the match \n(%d remaining)\n",
+					min, sec, (isTeam() || isCTF()) ? getteam(pausePlayer) : "", pausePlayer->netname, pausePlayer->k_pauseRequests
+				);	
+			}
+			// Start match unpause
+			else if (timeleft <= PAUSE_COUNTDOWN) 
+			{
+				G_cp2all(
+					"%s: %s\n\n%s %s unpaused the match\n",
+					redtext("Resuming in"), dig3(sec), (isTeam() || isCTF()) ? getteam(pausePlayer) : "", pausePlayer->netname
+				);
 
-			if (seconds != prevsec) {
-				for (p = world; (p = find_client(p));)
-				{
-					stuffcmd(p, "play buttons/switch04.wav\n");
+				if (seconds != prevsec) {
+					for (p = world; (p = find_client(p));)
+					{
+						stuffcmd(p, "play buttons/switch04.wav\n");
+					}
 				}
 			}
+		} 
+		// No pause duration
+		else 
+		{
+			G_cp2all(
+				"%s %s has paused the match \n(%d remaining)\n",
+				(isTeam() || isCTF()) ? getteam(pausePlayer) : "", pausePlayer->netname, pausePlayer->k_pauseRequests
+			);	
 		}
 	}
 
