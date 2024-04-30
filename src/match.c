@@ -3012,7 +3012,15 @@ void PauseTick (int time)
 	int timeleft = pausewhen - seconds;
 
 	if (seconds != prevsec) {
-		//G_bprint(2, "State: %0.2f, Time: %d, Pause: %d, Left: %d\n", cvar("sv_paused"), time, pausewhen, timeleft);
+		//G_bprint(2, "State: %d, Time: %d, Pause: %d, Left: %d\n", (int)cvar("sv_paused"), time, pausewhen, timeleft);
+	}
+
+	// Safety mechanic for when game has ended during pause (perhaps forcefully)
+	if (!k_matchLess && match_over) {
+		pausewhen = 0;
+		G_cp2all(" ");
+		trap_setpause(0);
+		return;
 	}
 
 	// Someone has initiated a match pause
