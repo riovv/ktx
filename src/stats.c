@@ -4,12 +4,10 @@
 #include "g_local.h"
 #include "stats.h"
 
-FILE_FORMAT_DECL(xml)
 FILE_FORMAT_DECL(json)
 
 static stats_format_t file_formats[] =
 {
-	FILE_FORMAT_DEF(xml),
 	FILE_FORMAT_DEF(json)
 };
 
@@ -463,7 +461,7 @@ static stats_format_t* FindStatsFormat(const char* requested_format)
 		}
 	}
 
-	// default to xml
+	// default to json
 	return &file_formats[0];
 }
 

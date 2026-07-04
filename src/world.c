@@ -1047,7 +1047,7 @@ void FirstFrame(void)
 
 // }
 
-	RegisterCvarEx("k_demotxt_format", "xml"); // what format for .txt files
+	RegisterCvarEx("k_demotxt_format", "json"); // what format for .txt files
 
 #ifdef BOT_SUPPORT
 // { frogbots support
