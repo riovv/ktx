@@ -1231,17 +1231,7 @@ typedef struct gedict_s
 	qbool spawn_effect_queued;
 // }
 
-// { hiprot fields
-	int rotate_type;                        // internal, rotate(0), movewall(1), setorigin(2), see hiprot.c
-	vec3_t neworigin;                       // internal, origin tracking
-	vec3_t rotate;                          // rotation angle
-	vec3_t finalangle;                      // normalized version of 'angles'
-	float endtime;                          // internal, animation tracking
-	float duration;                         // internal, animation tracking
-	string_t group;                         // linking of rotating brushes
-	string_t path;                          // from ent field 'target', as 'path' to mirror original source
-	string_t event;                         // events that may happen at path corners
-// }
+	float endtime;                          // internal, animation tracking, see func_bob.c
 
 // { func_bob
 	float distance;                         // distance between vantage points
