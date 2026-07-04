@@ -5316,31 +5316,7 @@ static void race_match_stats_apply(race_stats_score_t *stats, gedict_t *player)
 
 static void race_sort_teams(race_stats_score_t *teams, int count)
 {
-#ifdef Q3_VM
-	qbool any_changes = true;
-
-	// bubble-sort, lovely
-	while (any_changes)
-	{
-		int i;
-
-		any_changes = false;
-		for (i = 0; i < count - 1; ++i)
-		{
-			int comp = TeamSorter(&teams[i], &teams[i + 1]);
-
-			if (comp > 0)
-			{
-				race_stats_score_t temp = teams[i];
-				teams[i] = teams[i + 1];
-				teams[i + 1] = temp;
-				any_changes = true;
-			}
-		}
-	}
-#else
 	qsort(teams, count, sizeof(teams[0]), TeamSorter);
-#endif
 }
 
 static void race_match_team_stats(void)

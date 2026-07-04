@@ -9,16 +9,10 @@
 #include "g_local.h"
 
 // FIXME: Copy/paste from combat.c
-#ifndef Q3_VM
-// qvm have some bugs/round problem as i get from SD-Angel, so this trick
 float newceil(float f)
 {
 	return ceil(((int)(f * 1000.0)) / 1000.0);
 }
-#else
-// native use lib ceil function
-#define newceil ceil
-#endif
 
 float TotalStrength(float health, float armorValue, float armorType)
 {

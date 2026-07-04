@@ -346,22 +346,10 @@ void Killed(gedict_t *targ, gedict_t *attacker, gedict_t *inflictor)
 	}
 }
 
-#ifndef Q3_VM
-
-// qvm have some bugs/round problem as i get from SD-Angel, so this trick
-
 static float newceil(float f)
 {
 	return ceil(((int)(f * 1000.0)) / 1000.0);
 }
-
-#else
-
-// native use lib ceil function
-
-#define newceil ceil
-
-#endif
 
 // this was part of T_Damage(), but I split it, so less mess
 void MidairDamageBonus(gedict_t *attacker, gedict_t *targ, float midheight)

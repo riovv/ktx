@@ -4,11 +4,6 @@
 
 // native_lib.c -- different OS'es have different lib functions implementation, work around.
 
-// this file is only included when building a dll
-#ifdef Q3_VM
-#error "Do not use in VM build"
-#endif
-
 #include "g_local.h"
 
 #ifdef _WIN32

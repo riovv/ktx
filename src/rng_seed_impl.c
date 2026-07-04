@@ -20,15 +20,9 @@ See <http://creativecommons.org/publicdomain/zero/1.0/>. */
    It is a very fast generator passing BigCrush, and it can be useful if
    for some reason you absolutely want 64 bits of state. */
 
-#ifdef Q3_VM
-# define C1 0x9e3779b9
-# define C2 0xbf58476d
-# define C3 0x94d049bb
-#else
-# define C1 0x9e3779b97f4a7c15
-# define C2 0xbf58476d1ce4e5b9
-# define C3 0x94d049bb133111eb
-#endif
+#define C1 0x9e3779b97f4a7c15
+#define C2 0xbf58476d1ce4e5b9
+#define C3 0x94d049bb133111eb
 
 #define SHIFT1 (sizeof(rng_seed_t) == 8 ? 30 : 15)
 #define SHIFT2 (sizeof(rng_seed_t) == 8 ? 27 : 13)

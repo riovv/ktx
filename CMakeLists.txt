@@ -16,22 +16,14 @@ option(FTESV "Build with FTE extensions support" OFF)
 # Set where sources located.
 set(DIR_SRC "src")
 
-# Set variables with different source lists for native or QVM library:
-
-# g_syscalls.asm is a mapping between trap name and trap number, used by QVM library (it is q3asm code).
-set(SRC_VM_SYSCALL "g_syscalls.asm")
-# Sources for QVM library.
-set(SRC_VM
-	"${DIR_SRC}/bg_lib.c"
-	)
 # Sources for native library.
 set(SRC_NATIVE
 	"${DIR_SRC}/g_syscalls.c"
 	"${DIR_SRC}/native_lib.c"
 	)
-# Common sources for native and QVM.
+# Common sources.
 set(SRC_COMMON
-	"${DIR_SRC}/g_main.c" # WARNING: should be first in list for QVM, since it contains vmMain().
+	"${DIR_SRC}/g_main.c"
 	"${DIR_SRC}/admin.c"
 	"${DIR_SRC}/arena.c"
 	"${DIR_SRC}/bot_aim.c"
@@ -179,60 +171,3 @@ else()
 	endif()
 	target_link_libraries(${PROJECT_NAME} PRIVATE m) # Link with libm.
 endif()
-
-
-# Build QVM tools if needed.
-find_program(Q3ASM q3asm)
-if(Q3ASM)
-	message(STATUS "q3asm found at ${Q3ASM}")
-	set(QVM_LINKER "${Q3ASM}")
-else()
-	message(STATUS "q3asm not found, compiling bundled q3asm.")
-	# EXCLUDE_FROM_ALL tells to not build tools if they does not required, for example if you build native library only.
-	add_subdirectory(tools/q3asm EXCLUDE_FROM_ALL)
-	set(QVM_LINKER "q3asm")
-endif()
-
-# Set up vars for QVM library.
-set(VM_DIR "vm")
-add_custom_target(vmdir
-	COMMAND ${CMAKE_COMMAND} -E make_directory ${VM_DIR}
-	)
-set(QVM_COMPILER "q3lcc")
-set(QVM_C_FLAGS -DQ3_VM -S -Wf-target=bytecode -Wf-g)
-if(BOT_SUPPORT)
-	set(QVM_C_FLAGS ${QVM_C_FLAGS} -DBOT_SUPPORT=1)
-endif()
-set(QVM_INCDIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
-
-# Write first chunk of QVM_LIST_FILE.
-set(QVM_LIST_FILE "${CMAKE_CURRENT_BINARY_DIR}/game.q3asm")
-file(WRITE ${QVM_LIST_FILE} "-o ${PROJECT_NAME}\n")
-
-# Cycle through sources and fill in SRC_ASM varible, continue generate QVM_LIST_FILE.
-foreach(file ${SRC_COMMON} ${SRC_VM})
-	get_filename_component(file_asm ${file} NAME_WE) # Get basename without extension.
-	string(CONCAT file_asm ${file_asm} ".asm") # Add asm extension.
-	list(APPEND SRC_ASM ${file_asm}) # Fill in SRC_ASM list. 
-	file(APPEND ${QVM_LIST_FILE} "${VM_DIR}/${file_asm}\n") # Continue generate QVM_LIST_FILE.
-	get_filename_component(src_dir ${file} DIRECTORY)
-	file(RELATIVE_PATH QVM_RELINCDIR "${CMAKE_CURRENT_SOURCE_DIR}/${src_dir}" "${QVM_INCDIR}")
-	# Add command to compile c to asm.
-	add_custom_target(${file_asm}
-		COMMAND ${QVM_COMPILER} ${QVM_C_FLAGS} -I${QVM_RELINCDIR} "${CMAKE_CURRENT_SOURCE_DIR}/${file}" -o "${VM_DIR}/${file_asm}"
-		DEPENDS vmdir
-		SOURCES ${file}
-	)
-endforeach()
-
-# Copy file, but also add dependency.
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/${DIR_SRC}/${SRC_VM_SYSCALL} ${VM_DIR}/${SRC_VM_SYSCALL})
-# Append last chunk of data in QVM_LIST_FILE.
-file(APPEND ${QVM_LIST_FILE} "${VM_DIR}/${SRC_VM_SYSCALL}\n")
-# Print location of the file.
-message(STATUS ${QVM_LIST_FILE})
-# Add custom target for processing asm files and generating QVM library.
-add_custom_target(qvm
-	COMMAND ${QVM_LINKER} -m -f ${QVM_LIST_FILE}
-	DEPENDS ${SRC_ASM}
-)

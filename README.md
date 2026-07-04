@@ -79,13 +79,6 @@ G="Unix Makefiles" ./build_cmake.sh linux-amd64
 
 force CMake generator to be unix makefiles
 
-```
-./build_cmake.sh linux-amd64 qvm
-```
-
-build KTX for ``linux-amd64`` and ``QVM`` version, you can provide
-any platform combinations.
-
 ## Versioning
 
 For the versions available, see the [tags on this repository][ktx-tags].

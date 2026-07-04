@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [ linux-amd64, linux-i686, linux-armhf, linux-aarch64, windows-x64, windows-x86, qvm ]
+        target: [ linux-amd64, linux-i686, linux-armhf, linux-aarch64, windows-x64, windows-x86 ]
         include:
           - target: linux-amd64
             os: linux
@@ -49,11 +49,6 @@ jobs:
             arch: x86
             ext: ".dll"
             packages: [ "gcc-mingw-w64-i686" ]
-          - target: qvm
-            os: linux
-            arch: qvm
-            ext: ".qvm"
-            packages: [ ]
     container:
       image: "debian:stable"
     steps:
@@ -67,27 +62,7 @@ jobs:
           apt-get -qq update
           apt-get -qq install build-essential cmake ninja-build ${{ join(matrix.packages, ' ') }}
 
-      - name: Get number of CPU cores
-        uses: SimenB/github-actions-cpu-cores@v2
-        id: cpu-cores
-        if: matrix.target == 'qvm'
-
       - uses: ammaraskar/gcc-problem-matcher@0.3.0
-        if: matrix.target != 'qvm'
-
-      - name: Checkout q3lcc
-        uses: actions/checkout@v4
-        with:
-          repository: ec-/q3lcc
-          path: q3lcc
-        if: matrix.target == 'qvm'
-
-      - name: Build q3lcc
-        run: |
-          make -j ${{ steps.cpu-cores.outputs.count }} PLATFORM=$(uname -s) ARCH=$(uname -m)
-          mv build*/q3lcc build*/q3rcc build*/q3cpp /usr/local/bin
-        working-directory: q3lcc
-        if: matrix.target == 'qvm'
 
       - name: Build
         run: |

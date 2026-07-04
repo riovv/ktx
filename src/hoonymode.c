@@ -395,31 +395,7 @@ static int HM_spawn_comparison(const void *lhs_, const void *rhs_)
 
 static void HM_sort_spawns(gedict_t **spawns, int count)
 {
-#ifdef Q3_VM
-	qbool any_changes = true;
-
-	// bubble-sort, lovely
-	while (any_changes)
-	{
-		int i;
-
-		any_changes = false;
-		for (i = 0; i < count - 1; ++i)
-		{
-			int comp = HM_spawn_comparison(&spawns[i], &spawns[i + 1]);
-
-			if (comp > 0)
-			{
-				gedict_t* temp = spawns[i];
-				spawns[i] = spawns[i + 1];
-				spawns[i + 1] = temp;
-				any_changes = true;
-			}
-		}
-	}
-#else
 	qsort(spawns, count, sizeof(spawns[0]), HM_spawn_comparison);
-#endif
 }
 
 static void HM_shuffle_spawns(gedict_t **spawns, int count)

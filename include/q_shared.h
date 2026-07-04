@@ -45,31 +45,6 @@
 #define SCANF_FUNC( fmtargnumber )
 #endif
 
-/**********************************************************************
- VM Considerations
-
- The VM can not use the standard system headers because we aren't really
- using the compiler they were meant for.  We use bg_lib.h which contains
- prototypes for the functions we define for our own use in bg_lib.c.
-
- When writing mods, please add needed headers HERE, do not start including
- stuff like <stdio.h> in the various .c files that make up each of the VMs
- since you will be including system headers files can will have issues.
-
- Remember, if you use a C library function that is not defined in bg_lib.c,
- you will have to add your own version for support in the VM.
-
- **********************************************************************/
-
-#ifdef Q3_VM
-
-// QVM does not have such thing as visibility, using empty value to make compiler happy.
-#define VISIBILITY_VISIBLE
-
-#include "bg_lib.h"
-
-#else
-
 // Visibility for native library.
 #ifdef _WIN32
 	#define VISIBILITY_VISIBLE __declspec(dllexport)
@@ -115,8 +90,6 @@ size_t strlcat(char *dst, const char *src, size_t siz);
 #define Q_vsnprintf vsnprintf
 
 #endif // defined( _WIN32 )
-
-#endif
 
 #define	MAX_CLIENTS		32
 

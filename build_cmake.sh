@@ -14,7 +14,6 @@ DEFAULT_PLATFORMS=(
 	linux-i686
 	windows-x64
 	windows-x86
-	qvm
 )
 PLATFORMS=("${@:-${DEFAULT_PLATFORMS[@]}}")
 
@@ -45,14 +44,6 @@ mkdir -p ${BUILDDIR}
 for name in "${PLATFORMS[@]}"; do
 	P="${BUILDDIR}/$name"
 	mkdir -p "${P}"
-	case "${name}" in
-	"qvm" ) # Build QVM library.
-		cmake -B "${P}" -S . ${BOT_SUPPORT} ${BUILD}
-		cmake --build "${P}" --target qvm ${V}
-	;;
-	* ) # Build native library.
-		cmake -B "${P}" -S . ${BOT_SUPPORT} ${BUILD} -DCMAKE_TOOLCHAIN_FILE="tools/cross-cmake/${name}.cmake"
-		cmake --build "${P}" ${V}
-	;;
-	esac
+	cmake -B "${P}" -S . ${BOT_SUPPORT} ${BUILD} -DCMAKE_TOOLCHAIN_FILE="tools/cross-cmake/${name}.cmake"
+	cmake --build "${P}" ${V}
 done

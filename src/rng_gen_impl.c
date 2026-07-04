@@ -26,11 +26,7 @@ See <http://creativecommons.org/publicdomain/zero/1.0/>. */
 
    The state must be seeded so that it is not everywhere zero. */
 
-#ifdef Q3_VM
-# define Q_INLINE
-#else
-# define Q_INLINE inline
-#endif
+#define Q_INLINE inline
 
 static Q_INLINE unsigned int rotl(const unsigned int x, int k) {
 	return (x << k) | (x >> (32 - k));

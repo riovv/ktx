@@ -87,20 +87,6 @@ char *item_names[] =
 	TP_NAME_RUNE4, TP_NAME_QUAD, TP_NAME_PENT, TP_NAME_RING
 };
 
-#ifdef Q3_VM
-unsigned long strtoul(const char* str, char** endptr, int base)
-{
-	unsigned long value = 0;
-	while (*str >= '0' && *str <= '9')
-	{
-		value *= 10 + (*str - '0');
-		++str;
-	}
-
-	return value;
-}
-#endif
-
 void TeamplayEventItemTaken(gedict_t *client, gedict_t *item)
 {
 	char *took_flags_s = ezinfokey(client, "tptook");
