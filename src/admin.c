@@ -60,14 +60,6 @@ void ExitKick(gedict_t *kicker)
 // assuming kicker is admin
 qbool is_can_kick(gedict_t *victim, gedict_t *kicker)
 {
-	if (VIP_IsFlags(victim, VIP_NOTKICKABLE) && !is_real_adm(kicker))
-	{
-		G_sprint(kicker, 2, "You can't kick VIP \x8D %s as elected admin\n",
-					(strnull(victim->netname) ? "!noname!" : victim->netname));
-
-		return false;
-	}
-
 	if (is_real_adm(victim) && !is_real_adm(kicker))
 	{
 		G_sprint(kicker, 2, "You can't kick real admin \x8D %s as elected admin\n",
@@ -347,13 +339,6 @@ void ReqAdmin(void)
 	if (!cvar("k_admins"))
 	{
 		G_sprint(self, 2, "%s on this server!\n", redtext("NO admins"));
-
-		return;
-	}
-
-	if (VIP_IsFlags(self, VIP_ADMIN)) // this VIP does't required pass
-	{
-		BecomeAdmin(self, AF_REAL_ADMIN);
 
 		return;
 	}
@@ -929,14 +914,6 @@ void sv_lock(void)
 // assuming kicker is admin
 qbool is_can_forcespec(gedict_t *victim, gedict_t *kicker)
 {
-	if (VIP_IsFlags(victim, VIP_NOTKICKABLE) && !is_real_adm(kicker))
-	{
-		G_sprint(kicker, 2, "You can't force_spec VIP \x8D %s as elected admin\n",
-					(strnull(victim->netname) ? "!noname!" : victim->netname));
-
-		return false;
-	}
-
 	if (is_real_adm(victim) && !is_real_adm(kicker))
 	{
 		G_sprint(kicker, 2, "You can't force_spec real admin \x8D %s as elected admin\n",

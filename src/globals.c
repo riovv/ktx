@@ -27,7 +27,6 @@ float framechecks;				// if timedemo/uptime bugs are tolerated
 float k_attendees;				// stores number of players on server - used in 'ready' checking
 float k_captains;				// number of captains
 float k_captainturn;			// which captain comes in line to pick
-float k_coaches;				// number of coaches
 float k_checkx = 0;				// global which set to true when some time spend after match start
 float k_force;					// used in forcing matchstart
 float k_maxspeed;				// used to store server maxspeed to allow switching by admins
@@ -88,7 +87,7 @@ int k_cmd_fp_disabled;			// if 1 - don't use cmd floodprot
 qbool vw_available;				// vwep extension available
 qbool vw_enabled;				// vweps enabled
 
-float k_sv_locktime;			// some time before non VIP players can't connect, spectators not affected
+float k_sv_locktime;			// some time before players can't connect, spectators not affected
 
 // { rocket arena
 

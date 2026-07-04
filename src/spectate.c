@@ -39,8 +39,6 @@ void Bot_Print_Thinking(void);
 
 void SendSpecInfo(gedict_t *spec, gedict_t *target_client);
 
-qbool TrackChangeCoach(gedict_t *p);
-
 int GetSpecWizard(void)
 {
 	int k_asw = bound(0, cvar("allow_spec_wizard"), 2);
@@ -106,11 +104,6 @@ void SpecDecodeLevelParms(void)
 		self->k_admin = g_globalvars.parm11;
 	}
 
-	if (g_globalvars.parm12)
-	{
-		self->k_coach = g_globalvars.parm12;
-	}
-
 	if (g_globalvars.parm13)
 	{
 		self->k_stuff = g_globalvars.parm13;
@@ -124,11 +117,7 @@ qbool nospecs_canconnect(gedict_t *spec)
 {
 	if (cvar("_k_nospecs"))
 	{
-		// some VIPS able to connect anyway
-		if (!(VIP(spec) & ALLOWED_NOSPECS_VIPS) && !is_coach(spec))
-		{
-			return false;
-		}
+		return false;
 	}
 
 	return true;
@@ -163,7 +152,7 @@ void SpectatorConnect(void)
 	gedict_t *p;
 	int diff = (int)(PROG_TO_EDICT(self->s.v.goalentity) - world);
 
-	// we need this before the SpecCanConnect() call, as we need to restore admin and/or coach flags
+	// we need this before the SpecCanConnect() call, as we need to restore admin flags
 	SpecDecodeLevelParms();
 
 	if (!SpecCanConnect(self))
@@ -190,7 +179,6 @@ void SpectatorConnect(void)
 		self->s.v.goalentity = EDICT_TO_PROG(world);
 	}
 
-	VIP_ShowRights(self);
 	CheckRate(self, "");
 
 	if (match_in_progress != 2)
@@ -251,13 +239,6 @@ void SpectatorDisconnect(void)
 		}
 
 		AbortElect();
-	}
-
-	if (coach_num(self))
-	{
-		G_bprint(2, "A %s has left\n", redtext("coach"));
-
-		ExitCoach();
 	}
 
 	if (self->wizard)
@@ -342,14 +323,6 @@ void SpectatorImpulseCommand(void)
 
 void SpecGoalChanged(void)
 {
-	if (self->k_coach)
-	{
-		if (TrackChangeCoach(self))
-		{
-			return;
-		}
-	}
-
 	if (self->wp_stats)
 	{
 		Wp_Stats(2); // force refresh

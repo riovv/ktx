@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -208,7 +208,6 @@
     <ClCompile Include="..\..\src\captain.c" />
     <ClCompile Include="..\..\src\clan_arena.c" />
     <ClCompile Include="..\..\src\client.c" />
-    <ClCompile Include="..\..\src\coach.c" />
     <ClCompile Include="..\..\src\combat.c" />
     <ClCompile Include="..\..\src\commands.c" />
     <ClCompile Include="..\..\src\ctf.c" />
@@ -271,11 +270,9 @@
     <ClCompile Include="..\..\src\stats.c" />
     <ClCompile Include="..\..\src\statsTables.c" />
     <ClCompile Include="..\..\src\stats_json.c" />
-    <ClCompile Include="..\..\src\stats_xml.c" />
     <ClCompile Include="..\..\src\subs.c" />
     <ClCompile Include="..\..\src\teamplay.c" />
     <ClCompile Include="..\..\src\triggers.c" />
-    <ClCompile Include="..\..\src\vip.c" />
     <ClCompile Include="..\..\src\vote.c" />
     <ClCompile Include="..\..\src\weapons.c" />
     <ClCompile Include="..\..\src\world.c" />

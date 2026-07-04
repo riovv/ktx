@@ -392,12 +392,6 @@ qbool ClientSay(qbool isTeamSay)
 			return true;
 
 		case MMODE_RCON:
-			/*
-			 if ( !VIP_IsFlags(self, VIP_RCON) ) { // just sanity check
-			 G_sprint(self, 2, "mmode(rcon): access denied...\n");
-			 }
-			 else
-			 */
 		{
 			G_cprint("MM RCON from: %s: %s: %s\n", getname(self), ezinfokey(self, "ip"), str);
 			//trap_redirectcmd(self, va("%s\n", str)); // !!! WARNING: FULL ACCESS TO SERVER CONSOLE !!!
@@ -1137,12 +1131,6 @@ void mmode(void)
 		else if (streq(arg_2, "last"))
 		{
 			int last = iKey(self, "*ml");
-			/*
-			 if ( last == MMODE_RCON && !VIP_IsFlags(self, VIP_RCON) ) { // just sanity check
-			 G_sprint(self, 2, "mmode(rcon): access denied...\n");
-			 return;
-			 }
-			 */
 
 			SetUserInfo(self, "*mm", va("%d", last), SETUSERINFO_STAR);
 			G_sprint(self, 2, "last mmode(%s)\n", mmode_str(last));
@@ -1222,8 +1210,7 @@ void mmode(void)
 				return;
 			}
 
-			if (!((!strnull(arg_3) && strneq("none", rcpass) && streq(arg_3, rcpass)) // rcon via pass
-					|| VIP_IsFlags(self, VIP_RCON))) // rcon via VIP rights
+			if (!(!strnull(arg_3) && strneq("none", rcpass) && streq(arg_3, rcpass))) // rcon via pass
 			{ // ok, here we really need check access
 				G_cprint("RCON failed from: %s: %s\n", getname(self), ezinfokey(self, "ip"));
 				G_sprint(self, 2, "mmode(rcon): access denied...\n");

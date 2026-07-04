@@ -36,7 +36,6 @@ void SuggestColorApply(void);
 
 //void BeginPicking();
 void BecomeCaptain(gedict_t *p);
-void BecomeCoach(gedict_t *p);
 
 // AbortElect is used to terminate the voting
 // Important if player to be elected disconnects or levelchange happens
@@ -51,11 +50,6 @@ void AbortElect(void)
 			if (is_elected(p, etCaptain))
 			{
 				k_captains = floor(k_captains);
-			}
-
-			if (is_elected(p, etCoach))
-			{
-				k_coaches = floor(k_coaches);
 			}
 
 			p->v.elect_type = etNone;
@@ -278,11 +272,6 @@ int get_votes_req(int fofs, qbool diff)
 				percent = cvar("k_vp_captain");
 				break;
 			}
-			else if (el_type == etCoach)
-			{
-				percent = cvar("k_vp_coach");
-				break;
-			}
 			else if (el_type == etSuggestColor)
 			{
 				percent = cvar("k_vp_suggestcolor");
@@ -478,11 +467,6 @@ int get_elect_type(void)
 			return etCaptain;
 		}
 
-		if (is_elected(p, etCoach)) // elected coach
-		{
-			return etCoach;
-		}
-
 		if (is_elected(p, etSuggestColor))
 		{
 			return etSuggestColor;
@@ -506,9 +490,6 @@ char* get_elect_type_str(void)
 
 		case etCaptain:
 			return "Captain";
-
-		case etCoach:
-			return "Coach";
 
 		case etAdmin:
 			return "Admin";
@@ -688,14 +669,6 @@ void vote_check_elect(void)
 
 		if (!match_in_progress)
 		{
-			if (is_elected(p, etCoach)) // s: election was coach election
-			{
-				BecomeCoach(p);
-			}
-		}
-
-		if (!match_in_progress)
-		{
 			if (is_elected(p, etSuggestColor))
 			{
 				SuggestColorApply();
@@ -771,7 +744,7 @@ void vote_check_rpickup(int maxRecursion)
 	// buffer reserved for 32 players (16on16). If more present, recursive auto-rpickup will not be activated
 	int originalTeams[MAX_PLAYERCOUNT_RPICKUP];
 
-	if (match_in_progress || k_captains || k_coaches)
+	if (match_in_progress || k_captains)
 	{
 		return;
 	}
@@ -975,19 +948,9 @@ void vote_check_nospecs(void)
 
 			for (spec = world; (spec = find_spc(spec));)
 			{
-				if (VIP(spec) & ALLOWED_NOSPECS_VIPS)
-				{
-					continue; // don't kick this VIP
-				}
-
 				if (is_real_adm(spec))
 				{
 					continue; // don't kick real admin
-				}
-
-				if (is_coach(spec))
-				{
-					continue; // don't kick coaches
 				}
 
 				stuffcmd(spec, "disconnect\n");  // FIXME: stupid way
@@ -1622,7 +1585,7 @@ void vote_check_swapall(void)
 	int veto;
 	gedict_t *p;
 
-	if (match_in_progress || k_captains || k_coaches)
+	if (match_in_progress || k_captains)
 	{
 		return;
 	}

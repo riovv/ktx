@@ -741,23 +741,6 @@ void s_lr_clear(gedict_t *dsc);
 
 // }
 
-// vip.c
-
-// qqshka: hmm, like ktpro
-
-#define VIP_NORMAL      ( 1) // normal VIP (default)
-#define VIP_NOTKICKABLE ( 2) // not kickable VIP by elected admins
-#define	VIP_ADMIN       ( 4) // VIP with admin rights
-//		 8 - VIP with demo admin rights
-//		16 - VIP with judge rights
-#define VIP_RCON		(32) // VIP with rcon admin rights
-
-#define ALLOWED_NOSPECS_VIPS ( VIP_NOTKICKABLE | VIP_ADMIN | VIP_RCON )
-
-int VIP(gedict_t *cl);
-int VIP_IsFlags(gedict_t *cl, int flags);
-void VIP_ShowRights(gedict_t *cl);
-
 // g_userinfo.c
 
 void cmdinfo_infoset(gedict_t *p);
@@ -837,9 +820,9 @@ void AbortElect(void);
 
 // admin flags
 #define AF_ADMIN       (1<<0) // elected admin
-#define AF_REAL_ADMIN  (1<<1) // pass/vip granted admin (real admin in terms of ktpro)
+#define AF_REAL_ADMIN  (1<<1) // pass granted admin (real admin in terms of ktpro)
 
-qbool is_real_adm(gedict_t *p); // is pass/vip granted admin (real admin in terms of ktpro)
+qbool is_real_adm(gedict_t *p); // is pass granted admin (real admin in terms of ktpro)
 qbool is_adm(gedict_t *p);      // is elected admin (admin rigths granted by /elect command)
 
 void KickThink(void);
@@ -902,12 +885,6 @@ qbool CA_can_fire(gedict_t *p);
 // captain.c
 
 int capt_num(gedict_t *p);
-
-// coach.c
-
-int coach_num(gedict_t *p);
-qbool is_coach(gedict_t *p);
-void ExitCoach(void);
 
 // maps.c
 
@@ -1028,7 +1005,6 @@ extern float framechecks;      // if timedemo/uptime bugs are tolerated
 extern float k_attendees;      // stores number of players on server - used in 'ready' checking
 extern float k_captains;       // number of captains
 extern float k_captainturn;    // which captain comes in line to pick
-extern float k_coaches;        // number of coaches
 extern float k_checkx;
 extern float k_force;          // used in forcing matchstart
 extern float k_maxspeed;       // used to store server maxspeed to allow switching by admins
@@ -1083,7 +1059,7 @@ extern int k_cmd_fp_disabled; // if 1 - don't use cmd floodprot
 
 // }
 
-extern float k_sv_locktime; // some time before non VIP players can't connect, spectators not affected
+extern float k_sv_locktime; // some time before players can't connect, spectators not affected
 
 extern qbool vw_available; // vwep extension available
 extern qbool vw_enabled; // vweps enabled

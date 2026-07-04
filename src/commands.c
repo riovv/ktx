@@ -44,7 +44,6 @@ void VoteAdmin(void);
 void VoteYes(void);
 void VoteNo(void);
 void VoteCaptain(void);
-void VoteCoach(void);
 void SuggestColorVote(void);
 void nospecs(void);
 void teamoverlay(void);
@@ -430,7 +429,6 @@ const char CD_NODESC[] = "no desc";
 #define CD_YES				"give vote"
 #define CD_NO				"withdraws vote"
 #define CD_CAPTAIN			"toggle captain election"
-#define CD_COACH			"toggle coach election"
 #define CD_SUGGESTCOLOR			"toggle suggest color vote"
 #define CD_FREEZE			"(un)freeze the map"
 #define CD_RPICKUP			"vote random team pickup"
@@ -801,7 +799,6 @@ cmd_t cmds[] =
 	{ "yes", 						VoteYes, 						0, 			CF_PLAYER | CF_MATCHLESS, 												CD_YES },
 	{ "no", 						VoteNo, 						0, 			CF_PLAYER | CF_MATCHLESS, 												CD_NO },
 	{ "captain", 					VoteCaptain, 					0, 			CF_PLAYER, 																CD_CAPTAIN },
-	{ "coach", 						VoteCoach, 						0, 			CF_SPECTATOR, 															CD_COACH },
 	{ "suggestcolor", 					SuggestColorVote,					0, 			CF_PLAYER | CF_PARAMS, 															CD_SUGGESTCOLOR },
 	{ "freeze", 					ToggleFreeze, 					0, 			CF_PLAYER | CF_SPC_ADMIN, 												CD_FREEZE },
 	{ "rpickup", 					RandomPickup, 					0, 			CF_PLAYER | CF_SPC_ADMIN, 												CD_RPICKUP },
@@ -1903,11 +1900,6 @@ void ModStatus1(void)
 	if (floor(k_captains) == 1)
 	{
 		G_sprint(self, 2, "\2201\221 %s present\n", redtext("captain"));
-	}
-
-	if (floor(k_coaches) == 1)
-	{
-		G_sprint(self, 2, "\2201\221 %s present\n", redtext("coach"));
 	}
 
 	if (match_in_progress == 2)
@@ -5085,14 +5077,14 @@ void klist(void)
 		if (!i)
 		{
 			G_sprint(self, 2, "Clients list: %s\n", redtext("players"));
-			G_sprint(self, 2, "%s %s %s %s %s %s\n", redtext("id"), redtext("ad"), redtext("vip"),
+			G_sprint(self, 2, "%s %s %s %s %s\n", redtext("id"), redtext("ad"),
 						redtext("hdp"), redtext("team"), redtext("name"));
 		}
 
 		hdc = GetHandicap(p);
 
-		G_sprint(self, 2, "%2d|%2s|%3d|%3s|%4.4s|%s\n", GetUserID(p),
-					(is_real_adm(p) ? redtext("A") : is_adm(p) ? redtext("a") : ""), VIP(p),
+		G_sprint(self, 2, "%2d|%2s|%3s|%4.4s|%s\n", GetUserID(p),
+					(is_real_adm(p) ? redtext("A") : is_adm(p) ? redtext("a") : ""),
 					(hdc == 100 ? "off" : va("%d", hdc)), getteam(p), getname(p));
 	}
 
@@ -5106,15 +5098,14 @@ void klist(void)
 		if (!i)
 		{
 			G_sprint(self, 2, "Clients list: %s\n", redtext("spectators"));
-			G_sprint(self, 2, "%s %s %s %s %s\n",
-				redtext("id"), redtext("ad"), redtext("vip"), redtext("co"), redtext("name"));
+			G_sprint(self, 2, "%s %s %s\n",
+				redtext("id"), redtext("ad"), redtext("name"));
 		}
 
 		track = TrackWhom(p);
 
-		G_sprint(self, 2, "%2d|%2s|%3d|%2s|%s%s\n", GetUserID(p),
-					(is_real_adm(p) ? redtext("A") : is_adm(p) ? redtext("a") : ""), VIP(p),
-					(is_coach(p) ? redtext("c") : ""), getname(p),
+		G_sprint(self, 2, "%2d|%2s|%s%s\n", GetUserID(p),
+					(is_real_adm(p) ? redtext("A") : is_adm(p) ? redtext("a") : ""), getname(p),
 					(strnull(track) ? "" : va(" \x8D %s", track)));
 	}
 
@@ -5156,12 +5147,12 @@ void klist(void)
 		if (!i)
 		{
 			G_sprint(self, 2, "Clients list: %s\n", redtext("unconnected"));
-			G_sprint(self, 2, "%s %s %-10s %s\n", redtext("id"), redtext("vip"), redtext("state"),
+			G_sprint(self, 2, "%s %-10s %s\n", redtext("id"), redtext("state"),
 						redtext("name"));
 		}
 
-		G_sprint(self, 2, "%2d|%3d|%-10.10s|%s\n", iKey(p, "*userid"), // can't use GetUserID here
-					VIP(p), track, (strnull(p->netname) ? "!noname!" : p->netname));
+		G_sprint(self, 2, "%2d|%-10.10s|%s\n", iKey(p, "*userid"), // can't use GetUserID here
+					track, (strnull(p->netname) ? "!noname!" : p->netname));
 
 		i++;
 	}
@@ -5523,13 +5514,6 @@ void RandomPickup(void)
 	if (k_captains)
 	{
 		G_sprint(self, 2, "No random pickup when captain stuffing\n");
-
-		return;
-	}
-
-	if (k_coaches)
-	{
-		G_sprint(self, 2, "No random pickup when coach stuffing\n");
 
 		return;
 	}
@@ -6647,13 +6631,6 @@ void SwapAll(void)
 	if (k_captains)
 	{
 		G_sprint(self, 2, "No swapall when captain stuffing\n");
-
-		return;
-	}
-
-	if (k_coaches)
-	{
-		G_sprint(self, 2, "No swapall when coach stuffing\n");
 
 		return;
 	}

@@ -394,7 +394,7 @@ void SetChangeParms(void)
 	}
 
 	g_globalvars.parm11 = self->k_admin;
-	g_globalvars.parm12 = self->k_coach;
+	g_globalvars.parm12 = 0;
 	g_globalvars.parm13 = self->k_stuff;
 	g_globalvars.parm14 = self->ps.handicap;
 	g_globalvars.parm15 = self->ready;
@@ -479,11 +479,6 @@ void DecodeLevelParms(void)
 	if (g_globalvars.parm11)
 	{
 		self->k_admin = g_globalvars.parm11;
-	}
-
-	if (g_globalvars.parm12)
-	{
-		self->k_coach = g_globalvars.parm12;
 	}
 
 	if (g_globalvars.parm13)
@@ -1316,9 +1311,8 @@ qbool CanConnect(void)
 	int tmid;
 	int playerCount = 0;
 
-	if (k_sv_locktime && !VIP(self))
+	if (k_sv_locktime)
 	{
-		// don't allow none vip in this case
 		int seconds = k_sv_locktime - g_globalvars.time;
 
 		G_sprint(self, 2, "%s: %d second%s\n", redtext("server is temporary locked"), seconds,
@@ -1612,8 +1606,6 @@ void ClientConnect(void)
 {
 	gedict_t *p;
 	int i, totalspots;
-
-	VIP_ShowRights(self);
 
 	k_nochange = 0;
 
