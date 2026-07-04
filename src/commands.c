@@ -433,14 +433,10 @@ const char CD_NODESC[] = "no desc";
 #define CD_FREEZE			"(un)freeze the map"
 #define CD_RPICKUP			"vote random team pickup"
 #define CD_1ON1				"duel settings"
-#define CD_1ON1HM			"HoonyMode settings"
-#define CD_2ON2BLITZ		"Blitz 2v2"
-#define CD_4ON4BLITZ		"Blitz 4v4"
 #define CD_2ON2ON2			"2 on 2 on 2 settings"
 #define CD_3ON3ON3			"3 on 3 on 3 settings"
 #define CD_4ON4ON4			"4 on 4 on 4 settings"
 #define CD_XONX				"X on X settings"
-#define CD_HMSTATS			"show stats per hoonymode point"
 #define CD_2ON2				"2 on 2 settings"
 #define CD_3ON3				"3 on 3 settings"
 #define CD_4ON4				"4 on 4 settings"
@@ -675,10 +671,6 @@ const char CD_NODESC[] = "no desc";
 
 #define CD_TEAMPLAYMESSAGE	"teamplay messages"
 
-#define CD_PICKSPAWN		"nominate hoonymode spawn"
-#define CD_ROUNDSUP			"increase rounds in match"
-#define CD_ROUNDSDOWN		"decrease rounds in match"
-
 #define CD_GAMEMODES		"list available game modes"
 
 void dummy(void)
@@ -810,16 +802,13 @@ cmd_t cmds[] =
 	{ "10on10", 					DEF(UserMode), 					5, 			CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS,									CD_10ON10 },
 	{ "ffa", 						DEF(UserMode), 					6, 			CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS, 									CD_FFA },
 	{ "ctf", 						DEF(UserMode), 					7, 			CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS, 									CD_CTF },
-	{ "hoonymode", 					DEF(UserMode), 					8, 			CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS, 									CD_1ON1HM },
-	{ "blitz2v2", 					DEF(UserMode), 					9, 			CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS, 									CD_2ON2BLITZ },
-	{ "blitz4v4", 					DEF(UserMode), 					10, 		CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS, 									CD_4ON4BLITZ },
-	{ "2on2on2", 					DEF(UserMode), 					11, 		CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS, 									CD_2ON2ON2 },
-	{ "3on3on3", 					DEF(UserMode), 					12, 		CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS, 									CD_3ON3ON3 },
-	{ "4on4on4", 					DEF(UserMode), 					13, 		CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS, 									CD_4ON4ON4 },
-	{ "XonX", 						DEF(UserMode), 					14, 		CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS, 									CD_XONX },
-	{ "wipeout", 					DEF(UserMode), 					15, 		CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS, 									CD_WIPEOUT },
-	{ "carena", 					DEF(UserMode), 					16, 		CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS, 									CD_CARENA },
-	{ "tot", 					DEF(UserMode), 					17, 		CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS, 									CD_TOT },
+	{ "2on2on2", 					DEF(UserMode), 					8, 			CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS, 									CD_2ON2ON2 },
+	{ "3on3on3", 					DEF(UserMode), 					9, 			CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS, 									CD_3ON3ON3 },
+	{ "4on4on4", 					DEF(UserMode), 					10, 		CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS, 									CD_4ON4ON4 },
+	{ "XonX", 						DEF(UserMode), 					11, 		CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS, 									CD_XONX },
+	{ "wipeout", 					DEF(UserMode), 					12, 		CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS, 									CD_WIPEOUT },
+	{ "carena", 					DEF(UserMode), 					13, 		CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS, 									CD_CARENA },
+	{ "tot", 					DEF(UserMode), 					14, 		CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS, 									CD_TOT },
 
 	{ "practice", 					TogglePractice, 				0, 			CF_PLAYER | CF_SPC_ADMIN, 												CD_PRACTICE },
 	{ "wp_reset", 					Wp_Reset, 						0, 			CF_PLAYER, 																CD_WP_RESET },
@@ -1047,12 +1036,6 @@ cmd_t cmds[] =
 
 	// { TEAMPLAY
 	{ "tpmsg", 						TeamplayMessage, 				0, 			CF_PLAYER | CF_PARAMS | CF_MATCHLESS, 									CD_TEAMPLAYMESSAGE },
-
-	// { HOONYMODE
-	{ "pickspawn", 					HM_pick_spawn, 					0, 			CF_PLAYER, 																CD_PICKSPAWN },
-	{ "roundsup", 					HM_roundsup, 					0, 			CF_PLAYER, 																CD_ROUNDSUP },
-	{ "roundsdown", 				HM_roundsdown, 					0, 			CF_PLAYER, 																CD_ROUNDSDOWN },
-	// }
 
 	{ "voteprivate", 				private_game_vote, 				0, 			CF_PLAYER, 																CD_PRIVATEGAME },
 
@@ -2928,11 +2911,6 @@ void TimeDown(float t)
 		return;
 	}
 
-	if ((t == 5) && isHoonyModeAny())
-	{
-		t = 2;
-	}
-
 	if ((t == 5) && (timelimit == 5))
 	{
 		timelimit = 3;
@@ -3031,9 +3009,9 @@ void TimeSet(float t)
 
 void AdjustFragLimit(int delta)
 {
-	fraglimit += delta * (isHoonyModeAny() ? 2 : 10);
+	fraglimit += delta * 10;
 
-	fraglimit = bound(isHoonyModeAny() ? 0 : 1, fraglimit, isHoonyModeDuel() ? 20 : 100);
+	fraglimit = bound(1, fraglimit, 100);
 }
 
 void FragsDown(void)
@@ -3042,19 +3020,13 @@ void FragsDown(void)
 	{
 		return;
 	}
-	else if (isHoonyModeAny())
-	{
-		G_sprint(self, PRINT_HIGH, "No fraglimit in hoonymode\n");
-
-		return;
-	}
 	else
 	{
 		int fl = fraglimit;
 
 		if (fraglimit == 1)
 		{
-			// allow fraglimit "1" (instead of going from 10 directly to 0) as a type of minimal hoonymode
+			// allow fraglimit "1" (instead of going from 10 directly to 0)
 			fraglimit = 0;
 		}
 		else if (fraglimit == 0)
@@ -3089,10 +3061,6 @@ void FragsUp(void)
 	if (match_in_progress)
 	{
 		return;
-	}
-	else if (isHoonyModeAny())
-	{
-		G_sprint(self, PRINT_HIGH, "No fraglimit in hoonymode\n");
 	}
 	else
 	{
@@ -4171,7 +4139,6 @@ const char common_um_init[] =
 	"k_clan_arena 0\n"				// disable Clan Arena by default
 	"k_rocketarena 0\n"				// disable Rocket Arena by default
 	"k_race 0\n"					// disable Race by default
-	"k_hoonymode 0\n"				// disable HoonyMode by default
 	"k_freshteams 0\n"				// disable FreshTeams by default
 	"k_nosweep 0\n"					// disable nosweep by default
 	"k_spec_info 1\n"				// allow spectators receive took info during game
@@ -4219,45 +4186,6 @@ const char _1on1_um_init[] =
 	"k_lockmin 0\n"					// no efect in duel
 	"k_lockmax 0\n"					// no efect in duel
 	"k_mode 1\n"
-;
-
-const char _1on1hm_um_init[] =
-	"coop 0\n"						// no coop
-	"maxclients 2\n"				// duel = two players
-	"k_maxclients 2\n"				// duel = two players
-	"fraglimit 1\n"					// hoonymode - every 1 frag we toggle spawns
-	"timelimit 0\n"					// hoonymode - timelimit 0
-	"k_hoonymode 1\n"				//
-	"k_hoonyrounds 12\n"			// first to seven
-	"teamplay 0\n"					// hurt yourself, no teammates here
-	"deathmatch 3\n"				// weapons stay
-	"k_overtime 1\n"				// overtime type = time based
-	"k_exttime 3\n"					// overtime 3mins
-	"k_pow 0\n"						// powerups
-	"k_membercount 0\n"				// no efect in duel
-	"k_lockmin 0\n"					// no efect in duel
-	"k_lockmax 0\n"					// no efect in duel
-	"k_mode 1\n"
-;
-
-// 'blitz' now
-const char _2on2hm_um_init[] =
-	"coop 0\n"						// no coop
-	"maxclients 4\n"				// 2on2 = 4 players
-	"k_maxclients 4\n"				// 2on2 = 4 players
-	"timelimit 3\n"					// 3 minute rounds
-	"k_hoonyrounds 4\n"				// 4 rounds (2 sets of spawns)
-	"fraglimit 0\n"					// hoonymode - no fraglimit, time-based
-	"k_hoonymode 1\n"				//
-	"teamplay 2\n"					// hurt teammates and yourself
-	"deathmatch 3\n"				// weapons stay
-	"k_overtime 0\n"				// time based
-	"k_exttime 3\n"					// overtime 3mins
-	"k_pow 1\n"						// use powerups
-	"k_membercount 1\n"				// minimum number of players in each team
-	"k_lockmin 1\n"					// minimum number of teams
-	"k_lockmax 2\n"					// maximum number of teams
-	"k_mode 2\n"
 ;
 
 const char _2on2_um_init[] =
@@ -4319,26 +4247,6 @@ const char _3on3on3_um_init[] =
 	"k_membercount 2\n"				// minimum number of players in each team
 	"k_lockmin 1\n"					// minimum number of teams
 	"k_lockmax 3\n"					// maximum number of teams
-	"k_overtime 1\n"				// time based
-	"k_exttime 5\n"					// overtime 5mins
-	"k_mode 2\n"
-;
-
-// 'blitz' now
-const char _4on4hm_um_init[] =
-	"coop 0\n"						// no coop
-	"maxclients 8\n"				// 4on4 = 8 players
-	"k_maxclients 8\n"				// 4on4 = 8 players
-	"timelimit 5\n"					// 5 minute rounds
-	"k_hoonyrounds 4\n"				// 4 rounds (2 sets of spawns)
-	"fraglimit 0\n"					// no fraglimit, time-based
-	"teamplay 2\n"					// hurt teammates and yourself
-	"deathmatch 1\n"				// weapons wont stay on pickup
-	"k_hoonymode 1\n"
-	"k_pow 1\n"						// use powerups
-	"k_membercount 3\n"				// minimum number of players in each team
-	"k_lockmin 1\n"					// minimum number of teams
-	"k_lockmax 2\n"					// maximum number of teams
 	"k_overtime 1\n"				// time based
 	"k_exttime 5\n"					// overtime 5mins
 	"k_mode 2\n"
@@ -4533,9 +4441,6 @@ usermode um_list[] =
 	{ "10on10", 	"\223\222 on \223\222", _10on10_um_init, 	UM_10ON10, 	10 },
 	{ "ffa", 		"ffa", 					ffa_um_init, 		UM_FFA, 	-1 },
 	{ "ctf", 		"ctf", 					ctf_um_init, 		UM_CTF, 	 0 },
-	{ "hoonymode", 	"HoonyMode", 			_1on1hm_um_init, 	UM_1ON1HM, 	 0 },
-	{ "blitz2v2", 	"Blitz (2v2)", 			_2on2hm_um_init, 	UM_1ON1HM, 	 0 },
-	{ "blitz4v4", 	"Blitz (4v4)", 			_4on4hm_um_init, 	UM_1ON1HM, 	 0 },
 	{ "2on2on2", 	"\224 on \224 on \224", _2on2on2_um_init, 	UM_2ON2ON2,	 0 },
 	{ "3on3on3", 	"\225 on \225 on \225", _3on3on3_um_init, 	UM_3ON3ON3,	 0 },
 	{ "4on4on4", 	"\226 on \226 on \226", _4on4on4_um_init, 	UM_4ON4ON4,	 0 },
@@ -4634,13 +4539,6 @@ void UserMode(float umode)
 	}
 	else
 	{
-		if (world->hoony_timelimit || !strnull(world->hoony_defaultwinner))
-		{
-			G_sprint(self, 2, "This map is designed for hoonymode only\n");
-
-			return;
-		}
-
 		if (cvar("k_auto_xonx"))
 		{
 			G_sprint(self, 2, "Command blocked due to k_auto_xonx\n");
@@ -4825,8 +4723,6 @@ void UserMode(float umode)
 		trap_readcmd(va("exec %s\n", cfg_name), buf, sizeof(buf));
 		G_cprint("%s", buf);
 	}
-
-	HM_unpick_all_spawns();
 
 	G_cprint("\n");
 
@@ -6754,9 +6650,6 @@ char* lastscores2str(lsType_t lst)
 		case lsWO:
 			return "Wipeout";
 
-		case lsHM:
-			return "HoonyMode";
-
 		case lsRACE:
 			return "race";
 
@@ -6796,30 +6689,6 @@ void lastscore_add(void)
 		s1 = ed1->s.v.frags;
 		e2 = getname(ed2);
 		s2 = ed2->s.v.frags;
-	}
-	else if (isHoonyModeAny())
-	{
-		if (HM_current_point_type() != HM_PT_FINAL)
-		{
-			return;
-		}
-
-		lst = lsHM;
-		for (i = from = 0, p = world; (p = find_plrghst(p, &from)) && i < 2; i++)
-		{
-			if (!i)
-			{
-				// info about first dueler
-				e1 = getname(p);
-				s1 = p->s.v.frags;
-			}
-			else
-			{
-				// about second
-				e2 = getname(p);
-				s2 = p->s.v.frags;
-			}
-		}
 	}
 	else if (isDuel())
 	{
@@ -6922,7 +6791,7 @@ void lastscore_add(void)
 	cvar_set(va("__k_ls_t1_%d", k_ls), t1);
 	cvar_set(va("__k_ls_t2_%d", k_ls), t2);
 
-	if ((current_umode < umBlitz4v4) || (current_umode > um4on4on4))
+	if ((current_umode < um2on2on2) || (current_umode > um4on4on4))
 	{
 		cvar_set(va("__k_ls_s_%d", k_ls),
 				 va("%3d:%-3d %s \x8D %-8.8s %13.13s%s", s1, s2, (k_overtime ? "OT" : "  "), mapname, date, extra));
@@ -9503,9 +9372,6 @@ void ListGameModes(void)
 		"XonX",
 		"ffa",
 		"ctf",
-		"hoonymode",
-		"blitz2v2",
-		"blitz4v4",
 		"practice",
 		"midair",
 		"instagib",

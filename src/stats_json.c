@@ -1,9 +1,6 @@
 #include "g_local.h"
 #include "stats.h"
 
-// TODO
-// - Hoonymode stats: would be interesting to see spawn A vs B result... could always get from demo tho
-// - 
 
 //#define USER_FRIENDLY_JSON
 
@@ -29,7 +26,6 @@ static void json_player_ctf_stats(fileHandle_t handle, player_stats_t *stats);
 static void json_player_instagib_stats(fileHandle_t handle, player_stats_t *stats);
 static void json_player_midair_stats(fileHandle_t handle, player_stats_t *stats);
 static void json_player_ra_stats(fileHandle_t handle, player_stats_t *stats);
-static void json_player_hoonymode_stats(fileHandle_t handle, gedict_t *player);
 static void json_player_lgc_stats(fileHandle_t handle, gedict_t *player);
 
 #define STATS_VERSION_NUMBER 3
@@ -426,11 +422,6 @@ void json_player_detail(fileHandle_t handle, int player_num, gedict_t *player, c
 		json_player_ra_stats(handle, stats);
 	}
 
-	if (isHoonyModeAny())
-	{
-		json_player_hoonymode_stats(handle, player);
-	}
-
 	if (lgc_enabled())
 	{
 		json_player_lgc_stats(handle, player);
@@ -669,28 +660,6 @@ static void json_player_lgc_stats(fileHandle_t handle, gedict_t *player)
 
 	S2di(handle, "]" JSON_CR);
 	S2di(handle, "}" JSON_CR);
-}
-
-static void json_player_hoonymode_stats(fileHandle_t handle, gedict_t *player)
-{
-	S2di(handle, "," JSON_CR);
-	if (isHoonyModeDuel())
-	{
-		S2di(handle, INDENT6 "\"hm-rounds\": \"%s\"" JSON_CR,
-				json_string(HM_round_results(player)));
-	}
-	else
-	{
-		int i;
-
-		S2di(handle, INDENT6 "\"hm-frags\": [");
-		for (i = 0; i < HM_current_point(); ++i)
-		{
-			S2di(handle, "%s%d", i ? ", " : "", player->hoony_results[i]);
-		}
-
-		S2di(handle, "]" JSON_CR);
-	}
 }
 
 void json_race_detail(fileHandle_t handle)

@@ -53,11 +53,6 @@ void MatchEndStatsTables(void)
 {
 	gedict_t *p;
 
-	if (isHoonyModeAny() && !HM_is_game_over())
-	{
-		return;
-	}
-
 	if (!lastStatsData)
 	{
 		G_sprint(self, 2, "Laststats data empty\n");

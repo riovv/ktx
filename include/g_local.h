@@ -178,9 +178,6 @@ typedef enum
 	um10on10,
 	umFfa,
 	umCtf,
-	umHooneyM,
-	umBlitz2v2,
-	umBlitz4v4,
 	um2on2on2,
 	um3on3on3,
 	um4on4on4,
@@ -197,7 +194,6 @@ typedef enum
 	lsRA, // note no correspoding gameType_t for lsType
 	lsCA,
 	lsWO,
-	lsHM,
 	lsRACE
 } lsType_t; // lastscores type
 
@@ -697,7 +693,6 @@ void execute_rules_reset(void);
 #define UM_10ON10	( 1<<4  ) // `0000 0000 0000 0000 0000 0000 0001 0000` = 16
 #define UM_FFA		( 1<<5  ) // `0000 0000 0000 0000 0000 0000 0010 0000` = 32
 #define UM_CTF		( 1<<6  ) // `0000 0000 0000 0000 0000 0000 0100 0000` = 64
-#define UM_1ON1HM	( 1<<7  ) // `0000 0000 0000 0000 0000 0000 1000 0000` = 128
 #define UM_2ON2ON2	( 1<<8  ) // `0000 0000 0000 0000 0000 0001 0000 0000` = 256
 #define UM_3ON3ON3	( 1<<9  ) // `0000 0000 0000 0000 0000 0010 0000 0000` = 512
 #define UM_4ON4ON4	( 1<<10 ) // `0000 0000 0000 0000 0000 0100 0000 0000` = 1024
@@ -911,45 +906,6 @@ void GrappleReset(gedict_t *rhook);
 void CancelHook(gedict_t *owner);
 float IncreasePullSpeed(float speed, float incr);
 float DecreasePullSpeed(float speed, float decr);
-
-// hoonymode.c
-
-#define HM_PT_FINAL 1
-#define HM_PT_SET 2
-
-qbool isHoonyModeDuel(void);
-qbool isHoonyModeAny(void);
-qbool isHoonyModeTDM(void);
-
-gedict_t* HM_choose_spawn_point(gedict_t *player);
-void HM_log_spawn_point(gedict_t *player, gedict_t *spawn);
-
-void HM_draw(void);
-void HM_suicide(gedict_t *player);
-void HM_next_point(gedict_t *won, gedict_t *lost);
-void HM_all_ready(void);
-void HM_reset_map(void);
-void HM_initialise_rounds(void);
-void HM_rounds_adjust(int change);
-
-int HM_current_point_type(void);
-int HM_current_point(void);
-int HM_rounds(void);
-int HM_timelimit(void);
-char* HM_lastscores_extra(void);
-qbool HM_is_game_over(void);
-void HM_name_map_spawn(gedict_t *spawn);
-void HM_pick_spawn(void);
-void HM_unpick_all_spawns(void);
-void HM_roundsup(void);
-void HM_roundsdown(void);
-void HM_point_stats(void);
-void HM_restore_spawns(void);
-void HM_match_break(void);
-const char* HM_round_explanation(void);
-const char* HM_series_explanation(void);
-
-const char* HM_round_results(gedict_t *player);
 
 // race.c
 

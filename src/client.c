@@ -894,7 +894,6 @@ void SP_info_player_deathmatch(void)
 // above the ground, fix them
 	setsize(self, PASSVEC3(VEC_HULL_MIN), PASSVEC3(VEC_HULL_MAX));
 	VectorCopy(self->s.v.origin, saved_org);
-	HM_name_map_spawn(self);
 	droptofloor(self);
 	if (self->s.v.origin[2] < saved_org[2] - 64)
 		setorigin(self, PASSVEC3(saved_org));
@@ -1854,9 +1853,9 @@ void PutClientInServer(void)
 // paustime is set by teleporters to keep the player from moving a while
 	self->pausetime = 0;
 
-	if (isHoonyModeAny() && (spot = HM_choose_spawn_point(self)))
+	if (false)
 	{
-		// Nothing more to do
+		// keep if/else chain shape for the optional blocks below
 	}
 #ifdef BOT_SUPPORT
 	else if (FrogbotOptionEnabled(FB_OPTION_DEBUG_MOVEMENT) && self->isBot && match_in_progress
@@ -1907,8 +1906,6 @@ void PutClientInServer(void)
 	{
 		spot = SelectSpawnPoint(coop ? "info_player_coop" : "info_player_start");
 	}
-
-	HM_log_spawn_point(self, spot);
 
 	VectorCopy(spot->s.v.origin, self->s.v.origin);
 	self->s.v.origin[2] += 1;
@@ -2045,131 +2042,6 @@ void PutClientInServer(void)
 #endif
 
 		return;
-	}
-
-	if (spot->s.v.items && isHoonyModeAny())
-	{
-		char *armorExplanation = "a";
-		float armortype = 0.0f;
-		float armorvalue = 0.0f;
-
-		items = spot->s.v.items;
-		if (items & IT_ARMOR3)
-		{
-			armortype = (k_yawnmode ? 0.8 : 0.8); // Yawnmode: changed armor protection
-			armorvalue = max(0, min(spot->s.v.armorvalue, 200));
-			armorExplanation = "&cf00ra&cfff";
-		}
-		else if (items & IT_ARMOR2)
-		{
-			armortype = (k_yawnmode ? 0.6 : 0.6); // Yawnmode: changed armor protection
-			armorvalue = max(0, min(spot->s.v.armorvalue, 150));
-			armorExplanation = "&cff0ya&cfff";
-		}
-		else if (items & IT_ARMOR1)
-		{
-			armortype = (k_yawnmode ? 0.4 : 0.3); // Yawnmode: changed armor protection
-			armorvalue = max(0, min(spot->s.v.armorvalue, 100));
-			armorExplanation = "&c0b0ga&cfff";
-		}
-
-		// Fix flags on ammo
-		items |= (spot->s.v.ammo_shells ? IT_SHELLS : 0);
-		items |= (spot->s.v.ammo_nails ? IT_NAILS : 0);
-		items |= (spot->s.v.ammo_rockets ? IT_ROCKETS : 0);
-		items |= (spot->s.v.ammo_cells ? IT_CELLS : 0);
-
-		// They always get axe & shotgun.
-		items |= (IT_SHOTGUN | IT_AXE);
-
-		if (!match_in_progress)
-		{
-			int itemvalues[] =
-				{ IT_SUPER_SHOTGUN, IT_NAILGUN, IT_SUPER_NAILGUN, IT_GRENADE_LAUNCHER,
-						IT_ROCKET_LAUNCHER, IT_LIGHTNING };
-			char *itemnames[] =
-				{ "ssg", "ng", "sng", "gl", "rl", "lg" };
-			int i;
-			qbool first = true;
-
-			// Tell the player what they would have received here
-			if (!strnull(spot->targetname))
-			{
-				G_sprint(self, 2, "This spawn is: %s\n", redtext(spot->targetname));
-			}
-
-			G_sprint(self, 2, "Spawning here gives you:\n");
-			G_sprint(self, 2, "  %d%s, %dh\n", (int)armorvalue, armorExplanation,
-						(int)spot->s.v.health);
-
-			for (i = 0; i < sizeof(itemvalues) / sizeof(itemvalues[0]); ++i)
-			{
-				if (items & itemvalues[i])
-				{
-					G_sprint(self, 2, "%s%s", first ? "  " : ",", itemnames[i]);
-					first = false;
-				}
-			}
-
-			if (!first)
-			{
-				G_sprint(self, 2, "\n");
-			}
-			else
-			{
-				G_sprint(self, 2, "  (no extra weapons)\n");
-			}
-		}
-
-		if (match_in_progress == 2)
-		{
-			self->s.v.items = items;
-
-			// Copy ammo - if none specified, spawn with default
-			self->s.v.ammo_shells = spot->s.v.ammo_shells;
-			self->s.v.ammo_nails = spot->s.v.ammo_nails;
-			self->s.v.ammo_rockets = spot->s.v.ammo_rockets;
-			self->s.v.ammo_cells = spot->s.v.ammo_cells;
-			if ((self->s.v.ammo_shells == 0) && (self->s.v.ammo_nails == 0)
-					&& (self->s.v.ammo_rockets == 0) && (self->s.v.ammo_cells == 0))
-			{
-				self->s.v.ammo_shells = 25;
-			}
-
-			// Set armor
-			self->s.v.armortype = armortype;
-			self->s.v.armorvalue = armorvalue;
-
-			// Set health - if none specified, spawn with default
-			self->s.v.health = max(0, min(spot->s.v.health, 250));
-			if (self->s.v.health == 0)
-			{
-				self->s.v.health = 100;
-			}
-
-			// If any megahealth items are set to this spawn, set to track this player
-			if (!strnull(spot->targetname))
-			{
-				gedict_t *p;
-
-				for (p = world; (p = find(p, FOFCLSN, "item_health"));)
-				{
-					if (p->s.v.spawnflags == 2 && streq(spot->targetname, p->target))
-					{
-						// Pretend item was taken by this player
-						p->model = "";
-						p->s.v.solid = SOLID_NOT;
-						p->s.v.nextthink = g_globalvars.time
-								+ max(0, min(p->initial_spawn_delay, 5)) + 0.2; // bit extra otherwise 1 frame after the other
-						p->think = (func_t) item_megahealth_rot;
-						p->s.v.owner = EDICT_TO_PROG(self);
-
-						// Set flag on player
-						items |= IT_SUPERHEALTH;
-					}
-				}
-			}
-		}
 	}
 
 	if ((deathmatch == 4 || k_bloodfest) && (match_in_progress == 2))
@@ -2548,7 +2420,7 @@ void CheckRules(void)
 		return;
 	}
 
-	if (!isHoonyModeAny() && fraglimit && self->s.v.frags >= fraglimit)
+	if (fraglimit && self->s.v.frags >= fraglimit)
 	{
 		EndMatch(0);
 	}
@@ -4569,7 +4441,7 @@ void PlayerPostThink(void)
 				self->s.v.velocity[0] * self->s.v.velocity[0]
 						+ self->s.v.velocity[1] * self->s.v.velocity[1]);
 
-		if (!match_in_progress && !match_over && !k_captains && !k_matchLess && !isHoonyModeAny())
+		if (!match_in_progress && !match_over && !k_captains && !k_matchLess)
 		{
 			if (iKey(self, "kf") & KF_SPEED)
 			{
@@ -5257,7 +5129,7 @@ void ClientObituary(gedict_t *targ, gedict_t *attacker)
 		if (targ == attacker)
 		{
 			// killed self
-			if (!isHoonyModeDuel() && !isCA())
+			if (!isCA())
 			{
 				targ->s.v.frags -= (dtSUICIDE == targ->deathtype ? 2 : 1);
 			}
@@ -5323,11 +5195,6 @@ void ClientObituary(gedict_t *targ, gedict_t *attacker)
 			}
 
 			G_bprint(PRINT_MEDIUM, "%s%s", victimname, deathstring);
-
-			if (isHoonyModeDuel())
-			{
-				HM_suicide(targ);
-			}
 
 			return;
 		}
@@ -5440,11 +5307,6 @@ void ClientObituary(gedict_t *targ, gedict_t *attacker)
 			{
 				G_bprint(PRINT_MEDIUM, "%s squishes %s\n", attackername, victimname);
 
-				if (isHoonyModeDuel())
-				{
-					HM_next_point(attacker, targ);
-				}
-
 				return;	// !!! return !!!
 			}
 			else if (dtSTOMP == targ->deathtype)
@@ -5477,11 +5339,6 @@ void ClientObituary(gedict_t *targ, gedict_t *attacker)
 
 						default:
 							G_bprint(PRINT_MEDIUM, "%s stomps %s\n", attackername, victimname);
-							if (isHoonyModeDuel())
-							{
-								HM_next_point(attacker, targ);
-							}
-
 							return; // !!! return !!!
 					}
 				}
@@ -5553,12 +5410,6 @@ void ClientObituary(gedict_t *targ, gedict_t *attacker)
 						default:
 							G_bprint(PRINT_MEDIUM, "%s rips %s a new one\n", attackername,
 										victimname);
-							// hoonymode shouldn't have quad but just in case...
-							if (isHoonyModeDuel())
-							{
-								HM_next_point(attacker, targ);
-							}
-
 							return; // !!! return !!!
 					}
 
@@ -5662,19 +5513,11 @@ void ClientObituary(gedict_t *targ, gedict_t *attacker)
 			}
 		}
 
-		if (isHoonyModeDuel())
-		{
-			HM_next_point(attacker, targ);
-		}
-
 		return;
 	}
 	else // attacker->ct != ctPlayer
 	{
-		if (!isHoonyModeDuel())
-		{
-			targ->s.v.frags -= 1; // killed self
-		}
+		targ->s.v.frags -= 1; // killed self
 
 		logfrag(targ, targ);
 
@@ -5774,11 +5617,6 @@ void ClientObituary(gedict_t *targ, gedict_t *attacker)
 		}
 
 		G_bprint(PRINT_MEDIUM, "%s%s", victimname, deathstring);
-
-		if (isHoonyModeDuel())
-		{
-			HM_suicide(targ);
-		}
 	}
 }
 

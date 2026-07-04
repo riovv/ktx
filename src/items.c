@@ -2078,20 +2078,6 @@ void powerup_touch(void)
 			|| streq(self->classname, "item_artifact_invisibility"))
 	{
 		self->s.v.nextthink = g_globalvars.time + 60 * 5;
-		if (isHoonyModeTDM())
-		{
-			// 5 minute rounds => respawn at 3 minutes
-			// 10 minute rounds => respawn at 4 minutes
-			// otherwise => default
-			if (HM_timelimit() <= 300)
-			{
-				self->s.v.nextthink = g_globalvars.time + 60 * 3;
-			}
-			else if (HM_timelimit() <= 600)
-			{
-				self->s.v.nextthink = g_globalvars.time + 60 * 4;
-			}
-		}
 
 		if (!k_practice)
 		{
@@ -2871,7 +2857,7 @@ void DropBackpack(void)
 	item->s.v.nextthink = g_globalvars.time + (self->ct == ctPlayer ? 120 : 30);
 	item->think = (func_t) SUB_Remove;
 
-	item->classname = "backpack"; // we do need to be able to get rid of these things between points (hoony mode)
+	item->classname = "backpack";
 
 	if (isTeam())
 	{
@@ -2952,7 +2938,7 @@ gedict_t* Spawn_OnePoint(gedict_t *spawn_point, vec3_t org, int effects)
 		}
 	}
 
-	// store references for changing selections in hoonymode
+	// store references between spawn point and its visual marker
 	spawn_point->wizard = p;
 	p->wizard = spawn_point;
 
@@ -2974,11 +2960,6 @@ void Spawn_SpawnPoints(char *classname, int effects)
 		VectorCopy(e->s.v.origin, org);
 		org[2] += 0; // qqshka: it was 16, but I like more how it looks when it more close to ground
 
-		if (isHoonyModeDuel())
-		{
-			effects = (e->hoony_nomination ? (EF_GREEN | EF_RED) : 0);
-		}
-
 		Spawn_OnePoint(e, org, effects);
 	}
 
@@ -2998,11 +2979,6 @@ void Spawn_SpawnPoints(char *classname, int effects)
 
 			VectorCopy(s->s.v.origin, org);
 			org[2] += 0;
-
-			if (isHoonyModeDuel())
-			{
-				effects = (e->hoony_nomination ? (EF_GREEN | EF_RED) : 0);
-			}
 
 			Spawn_OnePoint(s, org, effects);
 		}

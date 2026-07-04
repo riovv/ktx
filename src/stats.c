@@ -314,10 +314,6 @@ const char* GetMode(void)
 	{
 		return "midair";
 	}
-	else if (isHoonyModeAny())
-	{
-		return "hoonymode";
-	}
 	else if (isRACE())
 	{
 		return "race";
@@ -1676,11 +1672,6 @@ void EM_CorrectStats(void)
 void MatchEndStats(void)
 {
 	gedict_t *p;
-
-	if (isHoonyModeAny() && !HM_is_game_over())
-	{
-		return;
-	}
 
 	if (isTeam() || isCTF())
 	{

@@ -552,12 +552,6 @@ void SP_worldspawn(void)
 		}
 	}
 
-	// Set hoonymode by default if flags set
-	if (world->hoony_timelimit || !strnull(world->hoony_defaultwinner))
-	{
-		UserMode(-8);
-		HM_initialise_rounds();
-	}
 }
 
 void ShowSpawnPoints(void);
@@ -883,12 +877,6 @@ void FirstFrame(void)
 	RegisterCvarEx("k_spm_custom_model", "0");
 	RegisterCvarEx("k_spm_color_rgba", "1.0 1.0 1.0 1.0");
 	RegisterCvar("k_entityfile");
-// { hoonymode
-	RegisterCvarEx("k_hoonymode", "0");
-	RegisterCvarEx("k_hoonyrounds", "6");
-	RegisterCvarEx("k_hoonymode_prevmap", "");
-	RegisterCvarEx("k_hoonymode_prevspawns", "");
-// }
 // { freshteams dmm1
 	RegisterCvarEx("k_freshteams", "0");
 	RegisterCvarEx("k_freshteams_weapon_time", "20");
@@ -1171,8 +1159,6 @@ void SecondFrame(void)
 	Customize_Maps();
 
 	LocationInitialise();
-
-	HM_restore_spawns();
 }
 
 void CheckSvUnlock(void)
@@ -1699,12 +1685,10 @@ void FixRules(void)
 	{
 		if (((timelimit == 0) && (fraglimit == 0)) || (timelimit > k_tt) || (timelimit < 0))
 		{
-			if (!isHoonyModeDuel() && !isRACE() && !isCA())
+			if (!isRACE() && !isCA())
 			{
 				cvar_fset("timelimit", timelimit = k_tt); // sensible default if no max set
 			}
-
-			// NOTE: hoonymode works with fraglimit = 0, and timelimit = 0, and manages the game by frags directly
 		}
 	}
 	else

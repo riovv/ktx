@@ -1201,11 +1201,7 @@ void PlayerDie(void)
 
 		// Yawnmode: respawn has the same delay (900ms) regardless of deathtype gib/normal
 		// - Molgrum
-
-		// Hoonymode: Also force some time, e.g. to prevent instant respawn after /kill which
-		// can cause bug if kill telefrags an idle player (counts as two points...)
-		// only ever happens in testing, but oh well --phil
-		if (k_yawnmode || isHoonyModeDuel())
+		if (k_yawnmode)
 		{
 			self->s.v.nextthink = g_globalvars.time + 0.9;
 			self->think = (func_t) PlayerDead;

@@ -223,7 +223,6 @@
     <ClCompile Include="..\..\src\g_syscalls.c" />
     <ClCompile Include="..\..\src\g_userinfo.c" />
     <ClCompile Include="..\..\src\g_utils.c" />
-    <ClCompile Include="..\..\src\hoonymode.c" />
     <ClCompile Include="..\..\src\items.c" />
     <ClCompile Include="..\..\src\logs.c" />
     <ClCompile Include="..\..\src\maps.c" />

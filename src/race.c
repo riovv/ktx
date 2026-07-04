@@ -5147,7 +5147,7 @@ typedef struct race_score_system_s
 // These are very basic, no competitions to base systems on
 static race_score_system_t scoring_systems[] =
 {
-	// Winner only: 1 frag for winning, for winner after x rounds (hoony-mode stylee)
+	// Winner only: 1 frag for winning, for winner after x rounds
 	{ "Win Only",
 	{ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, 0, 0, 0, 1 },
 	// Scaled system: 1 frag for completing run, 1 frag for each opponent beaten, 1 bonus frag for winner

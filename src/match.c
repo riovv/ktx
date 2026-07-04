@@ -281,7 +281,7 @@ void EndMatch(float skip_log)
 	int old_match_in_progress = match_in_progress;
 	char *tmp;
 	float f1;
-	qbool is_real_match_end = !isHoonyModeAny() || HM_is_game_over();
+	qbool is_real_match_end = true;
 	qbool f_modified_done = false, f_ruleset_done = false, f_version_done = false;
 	char *matchtag = ezinfokey(world, "matchtag");
 	qbool has_matchtag = matchtag != NULL && matchtag[0];
@@ -321,12 +321,7 @@ void EndMatch(float skip_log)
 		CA_MatchBreak();
 	}
 
-	if (isHoonyModeAny())
-	{
-		G_bprint(2, "The point is over\n");
-		HM_point_stats();
-	}
-	else if (deathmatch)
+	if (deathmatch)
 	{
 		G_bprint(2, "The match is over\n");
 	}
@@ -423,50 +418,8 @@ void EndMatch(float skip_log)
 
 	EM_on_MatchEndBreak(skip_log);
 
-	if (isHoonyModeAny())
-	{
-		qbool demomarker_logged = false;
-
-		if (!HM_is_game_over())
-		{
-			match_over = 0;
-
-			// All bots ready first
-			for (p = world; (p = find_plr(p));)
-			{
-				if (p->isBot)
-				{
-					p->ready = true;
-				}
-			}
-
-			for (p = world; (p = find_plr(p));)
-			{
-				if (!demomarker_logged)
-				{
-					stuffcmd(p, "//demomark 0 round-%2d\n", HM_current_point());
-					demomarker_logged = true;
-				}
-
-				stuffcmd(p, "ready\n");
-			}
-		}
-		else
-		{
-			for (p = world; (p = find_plr(p));)
-			{
-				stuffcmd(p, "hmstats\n");
-			}
-
-			StopLogs();
-			NextLevel();
-		}
-	}
-	else
-	{
-		StopLogs();
-		NextLevel();
-	}
+	StopLogs();
+	NextLevel();
 
 	// allow ready/break in bloodfest without map reloading.
 	if (k_bloodfest || isCA())
@@ -521,14 +474,6 @@ void CheckOvertime(void)
 	sc = get_scores1() - get_scores2();
 	k_mb_overtime = cvar("k_overtime");
 	k_exttime = bound(1, cvar("k_exttime"), 999); // at least some reasonable values
-
-	// In hoonymode the round is timing out, not the match - we're effectively always in suddendeath mode
-	if (isHoonyModeAny())
-	{
-		HM_draw();
-
-		return;
-	}
 
 	// If 0 no overtime, 1 overtime, 2 sudden death
 	// And if its neither then well we exit
@@ -965,7 +910,6 @@ static void SM_PrepareClients(void)
 	char *pl_team;
 	gedict_t *p, *temp;
 	gedict_t *players[MAX_CLIENTS];
-	qbool hoonymode_reset = isHoonyModeAny() && HM_current_point() > 0;
 
 	k_teamid = 666;
 	localcmd("localinfo 666 \"\"\n");
@@ -1036,19 +980,13 @@ static void SM_PrepareClients(void)
 				p->k_teamnum = 666;
 		}
 
-		if (!hoonymode_reset)
-		{
-			p->kills = p->suicides = p->friendly = p->deaths = p->s.v.frags = 0;
-		}
+		p->kills = p->suicides = p->friendly = p->deaths = p->s.v.frags = 0;
 
 		hdc = p->ps.handicap; // save player handicap
 
-		if (!hoonymode_reset)
-		{
-			memset((void*) &(p->ps), 0, sizeof(p->ps)); // clear player stats
+		memset((void*) &(p->ps), 0, sizeof(p->ps)); // clear player stats
 
-			WS_Reset(p); // force reset "new weapon stats"
-		}
+		WS_Reset(p); // force reset "new weapon stats"
 
 		p->ps.handicap = hdc; // restore player handicap
 
@@ -1284,7 +1222,7 @@ void StartMatch(void)
 		date[0] = 0;
 	}
 
-	if (deathmatch && (!isHoonyModeAny() || (HM_current_point() == 0)))
+	if (deathmatch)
 	{
 		if (date[0])
 		{
@@ -1311,32 +1249,10 @@ void StartMatch(void)
 	self->k_teamnum = g_globalvars.time + 3; //dirty i know, but why waste space?
 											 // FIXME: waste space, but be clean
 
-	if (isHoonyModeAny() && HM_timelimit() > 0)
-	{
-		int minutes = bound(0, HM_timelimit() / 60, 9999);
-		int seconds = HM_timelimit() % 60;
-
-		if (seconds)
-		{
-			++minutes;
-		}
-		else
-		{
-			seconds = 60;
-		}
-
-		self->cnt = minutes;
-		self->cnt2 = seconds;
-		localcmd("serverinfo status \"%d min left\"\n", minutes);
-		match_end_time = match_start_time + (minutes - 1) * 60 + seconds;
-	}
-	else
-	{
-		self->cnt = bound(0, timelimit, 9999);
-		self->cnt2 = 60;
-		localcmd("serverinfo status \"%d min left\"\n", (int)timelimit);
-		match_end_time = match_start_time + self->cnt * 60;
-	}
+	self->cnt = bound(0, timelimit, 9999);
+	self->cnt2 = 60;
+	localcmd("serverinfo status \"%d min left\"\n", (int)timelimit);
+	match_end_time = match_start_time + self->cnt * 60;
 
 	self->think = (func_t) TimerThink;
 	self->s.v.nextthink = g_globalvars.time + 1;
@@ -1390,67 +1306,6 @@ static qbool handicap_in_use(void)
 	return false;
 }
 
-void PersonalisedCountdown(char *baseText)
-{
-	char text[1024];
-	gedict_t *p;
-
-	for (p = world; (p = find_plr(p)); /**/)
-	{
-		strlcpy(text, baseText, sizeof(text));
-
-		if (HM_current_point_type() == HM_PT_SET)
-		{
-			strlcat(text, redtext("* Set Point *"), sizeof(text));
-			strlcat(text, "\n\n", sizeof(text));
-		}
-
-		if (p->k_hoony_new_spawn && !strnull(p->k_hoony_new_spawn->targetname))
-		{
-			strlcat(text, va("Next %8.8s\n", redtext(p->k_hoony_new_spawn->targetname)),
-					sizeof(text));
-
-			if (timelimit)
-			{
-				strlcat(text, va("%s %3s\n", "Timelimit", dig3(timelimit)), sizeof(text));
-			}
-			else if (isHoonyModeDuel() && world->hoony_timelimit)
-			{
-				int minutes = world->hoony_timelimit / 60;
-				int seconds = world->hoony_timelimit % 60;
-
-				if (minutes == 0)
-				{
-					strlcat(text, va("%s %3ss\n", "Duration", dig3(seconds)), sizeof(text));
-				}
-				else if (seconds == 0)
-				{
-					strlcat(text, va("%s %3sm\n", "Duration", dig3(minutes)), sizeof(text));
-				}
-				else
-				{
-					strlcat(text, va("%s %1s:%2s\n", "Duration", dig3(minutes), dig3(seconds)),
-							sizeof(text));
-				}
-			}
-
-			if (!strnull(world->hoony_defaultwinner))
-			{
-				if (streq(p->k_hoony_new_spawn->targetname, world->hoony_defaultwinner))
-				{
-					strlcat(text, va("Draw %s\n", redtext(" you win")), sizeof(text));
-				}
-				else
-				{
-					strlcat(text, va("Draw %s\n", redtext("you lose")), sizeof(text));
-				}
-			}
-		}
-
-		G_centerprint(p, "%s", text);
-	}
-}
-
 void PrintCountdown(int seconds)
 {
 // Countdown: seconds
@@ -1495,13 +1350,6 @@ void PrintCountdown(int seconds)
 //		strlcat(text, "no matchtag\n\n\n", sizeof(text));
 //	}
 
-	if (isHoonyModeDuel() && seconds <= 3)
-	{
-		PersonalisedCountdown(text);
-
-		return;
-	}
-
 	// useless in RA
 	if (!isRA() && !coop && !isRACE())
 	{
@@ -1531,17 +1379,9 @@ void PrintCountdown(int seconds)
 			mode = redtext("CA");
 		}
 	}
-	else if (isHoonyModeDuel())
-	{
-		mode = redtext("Hoony");
-	}
 	else if (lgc_enabled())
 	{
 		mode = redtext("LGC");
-	}
-	else if (isHoonyModeTDM())
-	{
-		mode = redtext("BlitzTDM");
 	}
 	else if (isRACE())
 	{
@@ -1574,13 +1414,6 @@ void PrintCountdown(int seconds)
 	{
 		strlcat(text, va("%s %3s\n", "RoundWins", dig3(CA_wins_required())), sizeof(text));
 	}
-	else if (isHoonyModeTDM() && HM_current_point())
-	{
-		strlcat(text, "\n", sizeof(text));
-		strlcat(text, (char*) HM_round_explanation(), sizeof(text));
-		strlcat(text, (char*) HM_series_explanation(), sizeof(text));
-		strlcat(text, "\n", sizeof(text));
-	}
 	else if (isRACE())
 	{
 		if (race.round_number >= race.rounds)
@@ -1591,7 +1424,6 @@ void PrintCountdown(int seconds)
 		strlcat(text, va("%s %9s\n", "Pts", race_scoring_system_name()), sizeof(text));
 	}
 
-	if (!(isHoonyModeTDM() && HM_current_point()))
 	{
 		//	if ( cvar( "k_spw" ) != 3 )
 		if (!isRACE())
@@ -1647,44 +1479,12 @@ void PrintCountdown(int seconds)
 		}
 	}
 
-	if (isHoonyModeAny())
-	{
-		int hm_timelimit = HM_timelimit();
-
-		if (hm_timelimit)
-		{
-			int minutes = hm_timelimit / 60;
-			int seconds = hm_timelimit % 60;
-
-			if (minutes == 0)
-			{
-				strlcat(text, va("%s %3ss\n", "Duration", dig3(seconds)), sizeof(text));
-			}
-			else if (seconds == 0)
-			{
-				strlcat(text, va("%s %3sm\n", "Duration", dig3(minutes)), sizeof(text));
-			}
-			else
-			{
-				strlcat(text, va("%s %1s:%2s\n", "Duration", dig3(minutes), dig3(seconds)),
-						sizeof(text));
-			}
-		}
-
-		if (HM_rounds())
-		{
-			strlcat(text,
-					va(" %s     %2s/%2s\n", "Round", dig3(HM_current_point() + 1),
-						dig3(HM_rounds())),
-					sizeof(text));
-		}
-	}
-	else if (timelimit)
+	if (timelimit)
 	{
 		strlcat(text, va("%s %3s\n", "Timelimit", dig3(timelimit)), sizeof(text));
 	}
 
-	if (!isHoonyModeAny() && fraglimit)
+	if (fraglimit)
 	{
 		strlcat(text, va("%s %3s\n", "Fraglimit", dig3(fraglimit)), sizeof(text));
 	}
@@ -1716,12 +1516,9 @@ void PrintCountdown(int seconds)
 			break;
 	}
 
-	if (!isHoonyModeAny())
+	if (timelimit && cvar("k_overtime"))
 	{
-		if (timelimit && cvar("k_overtime"))
-		{
-			strlcat(text, va("%s %4s\n", "Overtime", ot), sizeof(text));
-		}
+		strlcat(text, va("%s %4s\n", "Overtime", ot), sizeof(text));
 	}
 
 	if (!isRA() && Get_Powerups() && strneq("off", Get_PowerupsStr()))
@@ -1767,18 +1564,6 @@ void PrintCountdown(int seconds)
 		strlcat(text, "\n"
 				"Handicap in use\n",
 				sizeof(text));
-	}
-
-	if (isHoonyModeAny())
-	{
-		if (((HM_current_point() % 2) == 0))
-		{
-			strlcat(text, va("\n%-13s\n", redtext("New spawns")), sizeof(text));
-		}
-		else
-		{
-			strlcat(text, va("\n%-13s\n", redtext("Switch spawns")), sizeof(text));
-		}
 	}
 
 	if (tot_mode_enabled())
@@ -1991,17 +1776,6 @@ void standby_think(void)
 			if (!strnull(p->netname))
 			{
 				//set to ghost, 0.2 second before matchstart
-				if (isHoonyModeDuel() && p->k_hoony_new_spawn)
-				{
-					// move viewpoint to selected spawn
-					VectorCopy(p->k_hoony_new_spawn->s.v.origin, p->s.v.origin);
-					p->s.v.origin[2] += 1;
-					VectorCopy(p->k_hoony_new_spawn->s.v.angles, p->s.v.angles);
-					p->s.v.fixangle = true;
-
-					setnowep(p);
-				}
-
 				p->s.v.takedamage = 0;
 				p->s.v.solid = 0;
 				p->s.v.movetype = 0;
@@ -2039,11 +1813,6 @@ void TimerStartThink(void)
 		p->classname = "standby_th";
 		p->s.v.nextthink = g_globalvars.time + 0.8;
 		p->think = (func_t) standby_think;
-
-		if (isHoonyModeAny())
-		{
-			HM_reset_map();
-		}
 	}
 	else if (self->cnt2 <= 0)
 	{
@@ -2109,7 +1878,6 @@ void ShowMatchSettings(void)
 	}
 
 // print qizmo ( FPD ) settings
-	if (!isHoonyModeAny() || HM_current_point() == 0)
 	{
 		i = iKey(world, "fpd");
 		if (i & 170)
@@ -2368,10 +2136,6 @@ void StartDemoRecord(void)
 		{
 			record = false;
 		}
-		else if (isHoonyModeAny() && HM_current_point() > 0)
-		{
-			record = false; // don't try to record (segfault) when already recording
-		}
 		else
 		{
 			record = true;
@@ -2441,11 +2205,6 @@ void StartTimer(void)
 	timer->cnt = 0;
 
 	timer->cnt2 = max(3, (int)cvar("k_count")); // at the least we want a 3 second countdown
-
-	if (isHoonyModeDuel() && (HM_current_point() > 0))
-	{
-		timer->cnt2 = 3; // first point gets usual 10 seconds, next points gets less
-	}
 
 	if (k_bloodfest)
 	{
@@ -2559,8 +2318,6 @@ void StopTimer(int removeDemo)
 
 	match_start_time = 0;
 
-	// do not set to Standby during points, (unless its the final point of course)
-	if (!isHoonyModeAny() || (HM_current_point_type() == HM_PT_FINAL))
 	{
 		localcmd("serverinfo status Standby\n");
 	}
@@ -2815,7 +2572,7 @@ void PlayerReady(qbool startIdlebot)
 		return;
 	}
 
-	if (isCTF() || isHoonyModeTDM())
+	if (isCTF())
 	{
 		if (!streq(getteam(self), "red") && !streq(getteam(self), "blue"))
 		{
@@ -2878,12 +2635,9 @@ void PlayerReady(qbool startIdlebot)
 		}
 	}
 
-	if (!isHoonyModeAny() || (HM_current_point() == 0))
-	{
-		G_bprint(2, "%s %s%s%s\n", self->netname, redtext("is ready"),
-					((isTeam() || isCTF()) ? va(" \220%s\221", getteam(self)) : ""),
-					(matchtag[0] ? va(" - %s", matchtag) : " - no matchtag set"));
-	}
+	G_bprint(2, "%s %s%s%s\n", self->netname, redtext("is ready"),
+				((isTeam() || isCTF()) ? va(" \220%s\221", getteam(self)) : ""),
+				(matchtag[0] ? va(" - %s", matchtag) : " - no matchtag set"));
 
 	nready = CountRPlayers();
 	k_attendees = CountPlayers();
@@ -2925,11 +2679,6 @@ void PlayerReady(qbool startIdlebot)
 		}
 	}
 
-	if (isHoonyModeAny() && k_attendees && nready == k_attendees)
-	{
-		HM_all_ready();
-	}
-	else
 	{
 		if (k_attendees && (nready == k_attendees))
 		{
@@ -3037,10 +2786,8 @@ void PlayerBreak(void)
 
 	if (!k_matchLess || k_bloodfest)
 	{
-		// try stop countdown. (countdown between hoony-mode points can't be stopped, treat as standard break request).
-		qbool can_stop_hoonymode = (!isHoonyModeAny() || HM_current_point() == 0);
-
-		if (match_in_progress == 1 && can_stop_hoonymode)
+		// try stop countdown.
+		if (match_in_progress == 1)
 		{
 			p = find(world, FOFCLSN, "timer");
 

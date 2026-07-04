@@ -403,7 +403,6 @@ typedef struct teamplay_s
 #define it_players	(it_teammate|it_enemy|it_eyes)
 
 #define MAX_SPAWN_WEIGHTS (64)
-#define HM_MAX_ROUNDS 64
 
 #ifdef BOT_SUPPORT
 // frogbots
@@ -1185,17 +1184,7 @@ typedef struct gedict_s
 // }
 
 	qbool dropitem;							// true if placed with "dropitem" command.
-// { hoonymode
-	struct gedict_s *k_hoonyspawn;			// hoonymode: the player's spawn on even-numbered round
-	struct gedict_s *k_hoony_new_spawn;		// hoonymode: the player's spawn for the current round
 	float initial_spawn_delay;				// should be 'taken' at game start and spawn after delay
-	int hoony_timelimit;					// maximum time for each round
-	char *hoony_defaultwinner;				// if round time expires, who wins the round?  if null then both players score point
-	byte hoony_results[HM_MAX_ROUNDS];		// store results of each round
-	int hoony_prevfrags;					// frags at end of previous round
-	int hoony_nomination;					// links player -> nominated spawn and vice versa
-	int hoony_spawn_order;					// spawn order when shuffling
-// }
 
 #ifdef BOT_SUPPORT
 // { frogbots
