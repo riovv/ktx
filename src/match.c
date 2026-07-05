@@ -34,9 +34,6 @@ void SM_PrepareTeamsStats(void);
 void SM_PrepareShowscores(void);
 static void SM_ExecuteQueuedSpawnEffects(void);
 
-void race_match_start(void);
-qbool race_can_cancel_demo(void);
-
 extern int g_matchstarttime;
 qbool initial_match_spawns;
 int maxPlayerCount;
@@ -348,7 +345,7 @@ void EndMatch(float skip_log)
 	}
 	else
 	{
-		if (is_real_match_end && !isRACE())
+		if (is_real_match_end)
 		{
 			ListDemoMarkers();
 		}
@@ -494,12 +491,12 @@ void CheckOvertime(void)
 		k_mb_overtime = 0; // no overtime in lgc mode
 	}
 
-	if ((isTeam() || isCTF()) && (teams != 2))
+	if (isTeam() && (teams != 2))
 	{
 		k_mb_overtime = 0; // no overtime in case of less than 2 or more than 2 teams
 	}
 	else if (((isDuel() || isFFA()) && ed1 && ed2) // duel or ffa
-			|| ((isTeam() || isCTF()) && (teams == 2) && (players > 1))) // Handle a 2v2 or above team game or 1v1 CTF
+			|| (isTeam() && (teams == 2) && (players > 1))) // Handle a 2v2 or above team game
 	{
 		if (((k_mb_overtime == 3) && abs(sc) > 1) // tie-break overtime allowed with one frag difference (c) ktpro
 			|| (k_mb_overtime != 3 && k_mb_overtime != SD_GOLDEN_FRAG && abs(sc) > 0)) // time based
@@ -766,18 +763,13 @@ void SM_PrepareMap(void)
 {
 	gedict_t *p;
 
-	if (isCTF())
-	{
-		SpawnRunes(cvar("k_ctf_runes"));
-	}
-
 	// this must be removed in any cases
 	remove_projectiles();
 
 	for (p = world; (p = nextent(p));)
 	{
 		// going for the if content record..
-		if (isRACE() || ((deathmatch == 4) && (cvar("k_instagib") || cvar("k_midair")))
+		if (((deathmatch == 4) && (cvar("k_instagib") || cvar("k_midair")))
 				|| cvar("k_noitems") || k_bloodfest)
 		{
 			if (streq(p->classname, "weapon_nailgun") || streq(p->classname, "weapon_supernailgun")
@@ -988,12 +980,6 @@ static void SM_PrepareClients(void)
 			continue;
 		}
 
-		// ignore k_respawn() in case of race mode
-		if (isRACE())
-		{
-			continue;
-		}
-
 		k_respawn(p, false);
 
 		p->k_pauseRequests = MAX_PAUSE_REQUESTS;
@@ -1035,14 +1021,13 @@ void SM_PrepareShowscores(void)
 	char *team2 = "";
 	char *team3 = "";
 
-	if (k_matchLess && !isCTF()) // skip this in matchLess mode, unless CTF matchless (otherwise causes unlimited overtime because "sc" is always = 0 in CheckOvertime())
+	if (k_matchLess) // skip this in matchLess mode (otherwise causes unlimited overtime because "sc" is always = 0 in CheckOvertime())
 	{
 		return;
 	}
 
-	if (((!isTeam() && !isCTF())
+	if (!isTeam()
 			|| ((CountRTeams() != 2) && (CountRTeams() != 3)))
-			&& !(isCTF() && k_matchLess)) // we need 2 ready teams, unless CTF matchless
 	{
 		return;
 	}
@@ -1254,11 +1239,6 @@ void StartMatch(void)
 		ent_remove(self); // timelimit == 0, so match will end no due to timelimit but due to fraglimit or something
 	}
 
-	if (isRACE())
-	{
-		race_match_start();
-	}
-
 	stuffcmd_flags(world, STUFFCMD_DEMOONLY, "//ktx matchstart\n");
 	cvar_fset("qtv_sayenabled", 0);
 }
@@ -1324,7 +1304,7 @@ void PrintCountdown(int seconds)
 //		strlcat(text, "no matchtag\n\n\n", sizeof(text));
 //	}
 
-	if (!coop && !isRACE())
+	if (!coop)
 	{
 		strlcat(text, va("%s %2s\n", "Deathmatch", dig3(deathmatch)), sizeof(text));
 	}
@@ -1341,10 +1321,6 @@ void PrintCountdown(int seconds)
 	{
 		mode = redtext("LGC");
 	}
-	else if (isRACE())
-	{
-		mode = redtext("R A C E");
-	}
 	else if (isDuel())
 	{
 		mode = redtext("D u e l");
@@ -1357,10 +1333,6 @@ void PrintCountdown(int seconds)
 	{
 		mode = redtext("F F A");
 	}
-	else if (isCTF())
-	{
-		mode = redtext("C T F");
-	}
 	else
 	{
 		mode = redtext("Unknown");
@@ -1368,30 +1340,16 @@ void PrintCountdown(int seconds)
 
 	strlcat(text, va("%s %8s\n", "Mode", mode), sizeof(text));
 
-	if (isRACE())
 	{
-		if (race.round_number >= race.rounds)
-		{
-			strlcat(text, va("Round %7s\n", redtext("final")), sizeof(text));
-		}
-
-		strlcat(text, va("%s %9s\n", "Pts", race_scoring_system_name()), sizeof(text));
-	}
-
-	{
-		//	if ( cvar( "k_spw" ) != 3 )
-		if (!isRACE())
-		{
-			strlcat(text, va("%s %4s\n", "Respawns", respawn_model_name_short(cvar("k_spw"))),
-					sizeof(text));
-		}
+		strlcat(text, va("%s %4s\n", "Respawns", respawn_model_name_short(cvar("k_spw"))),
+				sizeof(text));
 
 		if (cvar("sv_antilag"))
 		{
 			strlcat(text, va("%s %5s\n", "Antilag", dig3((int)cvar("sv_antilag"))), sizeof(text));
 		}
 
-		if (cvar("k_noitems") && !isRACE())
+		if (cvar("k_noitems"))
 		{
 			strlcat(text, va("%s %5s\n", "NoItems", redtext("on")), sizeof(text));
 		}
@@ -1417,17 +1375,17 @@ void PrintCountdown(int seconds)
 		}
 
 		vw_enabled = vw_available && cvar("k_allow_vwep") && cvar("k_vwep");
-		if (vw_enabled && !isRACE())
+		if (vw_enabled)
 		{
 			strlcat(text, va("%s %8s\n", "VWep", redtext("on")), sizeof(text));
 		}
 
-		if (cvar("k_teamoverlay") && tp_num() && !isDuel() && !isRACE())
+		if (cvar("k_teamoverlay") && tp_num() && !isDuel())
 		{
 			strlcat(text, va("%s %3s\n", "TmOverlay", redtext("on")), sizeof(text));
 		}
 
-		if (isTeam() || isCTF())
+		if (isTeam())
 		{
 			strlcat(text, va("%s %4s\n", "Teamplay", dig3(teamplay)), sizeof(text));
 		}
@@ -1556,8 +1514,8 @@ void PrintCountdown(int seconds)
 
 qbool isCanStart(gedict_t *s, qbool forceMembersWarn)
 {
-	int k_lockmin = isRACE() ? 2 : cvar("k_lockmin");
-	int k_lockmax = isRACE() ? 2 : cvar("k_lockmax");
+	int k_lockmin = cvar("k_lockmin");
+	int k_lockmax = cvar("k_lockmax");
 	int k_membercount = cvar("k_membercount");
 	int i = CountRTeams();
 	int sub;
@@ -1588,7 +1546,7 @@ qbool isCanStart(gedict_t *s, qbool forceMembersWarn)
 	}
 
 	// no team/members rules limitation in non team game
-	if (!isTeam() && !isCTF())
+	if (!isTeam())
 	{
 		return true;
 	}
@@ -1682,29 +1640,6 @@ qbool isCanStart(gedict_t *s, qbool forceMembersWarn)
 		}
 
 		return false;
-	}
-
-	if (isCTF() && !k_matchLess) // In matchless CTF, the "this map does not support CTF mode" would get spammed constantly in an unsupported map. So, don't bother returning false.
-	{
-		// can't really play ctf if map doesn't have flags
-		gedict_t *rflag = find(world, FOFCLSN, "item_flag_team1");
-		gedict_t *bflag = find(world, FOFCLSN, "item_flag_team2");
-
-		if (!rflag || !bflag)
-		{
-			txt = "This map does not support CTF mode\n";
-
-			if (s)
-			{
-				G_sprint(s, 2, "%s", txt);
-			}
-			else
-			{
-				G_bprint(2, "%s", txt);
-			}
-
-			return false;
-		}
 	}
 
 	return true;
@@ -1876,39 +1811,9 @@ char* CompilateDemoName(void)
 	char *name, *vs;
 
 	demoname[0] = 0;
-	if (isRACE() && !race_match_mode())
-	{
-		players = 0;
-
-		strlcat(demoname, "race", sizeof(demoname));
-		for (vs = "_", p = world; (p = find_plr(p));)
-		{
-			if (strnull(name = getname(p)) || !(p->racer))
-			{
-				continue;
-			}
-
-			if (players < 2)
-			{
-				strlcat(demoname, vs, sizeof(demoname));
-				strlcat(demoname, name, sizeof(demoname));
-			}
-			else if (players == 2)
-			{
-				strlcat(demoname, vs, sizeof(demoname));
-				strlcat(demoname, "others", sizeof(demoname));
-			}
-
-			++players;
-		}
-	}
-	else if (isDuel())
+	if (isDuel())
 	{
 		strlcat(demoname, "duel", sizeof(demoname));
-		if (isRACE())
-		{
-			strlcat(demoname, "_race", sizeof(demoname));
-		}
 
 		if (cvar("k_midair"))
 		{
@@ -1926,17 +1831,13 @@ char* CompilateDemoName(void)
 			{
 				continue;
 			}
-			if (isRACE() && !(p->race_participant))
-			{
-				continue;
-			}
 
 			strlcat(demoname, vs, sizeof(demoname));
 			strlcat(demoname, name, sizeof(demoname));
 			vs = "_vs_";
 		}
 	}
-	else if (isTeam() || isCTF())
+	else if (isTeam())
 	{
 		char teams[MAX_CLIENTS][MAX_TEAM_NAME];
 		int cnt = getteams(teams);
@@ -1974,11 +1875,6 @@ char* CompilateDemoName(void)
 			strlcat(demoname, "ctf", sizeof(demoname));
 		}
 
-		if (isRACE())
-		{
-			strlcat(demoname, "_race", sizeof(demoname));
-		}
-
 		for (vs = "_", i = 0; i < MAX_CLIENTS; i++)
 		{
 			if (strnull(teams[i]))
@@ -1993,32 +1889,14 @@ char* CompilateDemoName(void)
 	}
 	else if (isFFA())
 	{
-		if (isRACE())
-		{
-			strlcat(demoname, "race_", sizeof(demoname));
-		}
-
 		strlcat(demoname, va("ffa_%d", (int)CountPlayers()), sizeof(demoname));
 	}
 	else
 	{
-		if (isRACE())
-		{
-			strlcat(demoname, "race_", sizeof(demoname));
-		}
-
 		strlcat(demoname, va("unknown_%d", (int)CountPlayers()), sizeof(demoname));
 	}
 
-	if (isRACE())
-	{
-		strlcat(demoname, va("[%s_r%02d]", mapname, race.active_route),
-				sizeof(demoname));
-	}
-	else
-	{
-		strlcat(demoname, va("[%s]", mapname), sizeof(demoname));
-	}
+	strlcat(demoname, va("[%s]", mapname), sizeof(demoname));
 
 	fmt = cvar_string("k_demoname_date");
 
@@ -2042,11 +1920,7 @@ void StartDemoRecord(void)
 	{ // FIXME: TODO: make this more like ktpro
 		qbool record = false;
 
-		if (isRACE())
-		{
-			record = true;
-		}
-		else if (!deathmatch)
+		if (!deathmatch)
 		{
 			record = false;
 		}
@@ -2226,7 +2100,7 @@ void StopTimer(int removeDemo)
 		ent_remove(timer);
 	}
 
-	if (removeDemo && (match_can_cancel_demo()) && (race_can_cancel_demo())
+	if (removeDemo && (match_can_cancel_demo())
 			&& !strnull(cvar_string("serverdemo")))
 	{
 		localcmd("sv_democancel\n"); // demo is recording and must be removed, do it
@@ -2426,14 +2300,7 @@ void PlayerReady(qbool startIdlebot)
 	char *matchtag = ezinfokey(world, "matchtag");
 	qbool has_matchtag = matchtag != NULL && matchtag[0];
 
-	if (isRACE() && !race_match_mode())
-	{
-		r_changestatus(1); // race_ready
-
-		return;
-	}
-
-	if (self->ct == ctSpec && !isRACE())
+	if (self->ct == ctSpec)
 	{
 
 		if (!cvar("k_auto_xonx") || k_matchLess)
@@ -2467,7 +2334,7 @@ void PlayerReady(qbool startIdlebot)
 		return;
 	}
 
-	if (k_practice && !isRACE())
+	if (k_practice)
 	{ // #practice mode#
 		G_sprint(self, 2, "%s\n", redtext("Server in practice mode"));
 
@@ -2488,17 +2355,7 @@ void PlayerReady(qbool startIdlebot)
 		return;
 	}
 
-	if (isCTF())
-	{
-		if (!streq(getteam(self), "red") && !streq(getteam(self), "blue"))
-		{
-			G_sprint(self, 2, "You must be on team red or blue\n");
-
-			return;
-		}
-	}
-
-	if (k_force && (isTeam() || isCTF()))
+	if (k_force && isTeam())
 	{
 		nready = 0;
 		for (p = world; (p = find_plr(p));)
@@ -2522,7 +2379,7 @@ void PlayerReady(qbool startIdlebot)
 	}
 
 	// do not allow empty team in team mode, because it cause problems
-	if ((isTeam() || isCTF()) && strnull(getteam(self)))
+	if (isTeam() && strnull(getteam(self)))
 	{
 		G_sprint(self, 2, "Set your %s before ready!\n", redtext("team"));
 
@@ -2538,21 +2395,8 @@ void PlayerReady(qbool startIdlebot)
 	self->v.brk = 0;
 	self->k_teamnum = 0;
 
-	// force red or blue color if ctf
-	if (isCTF())
-	{
-		if (streq(getteam(self), "blue"))
-		{
-			stuffcmd_flags(self, STUFFCMD_IGNOREINDEMO, "color 13\n");
-		}
-		else if (streq(getteam(self), "red"))
-		{
-			stuffcmd_flags(self, STUFFCMD_IGNOREINDEMO, "color 4\n");
-		}
-	}
-
 	G_bprint(2, "%s %s%s%s\n", self->netname, redtext("is ready"),
-				((isTeam() || isCTF()) ? va(" \220%s\221", getteam(self)) : ""),
+				(isTeam() ? va(" \220%s\221", getteam(self)) : ""),
 				(matchtag[0] ? va(" - %s", matchtag) : " - no matchtag set"));
 
 	nready = CountRPlayers();
@@ -2637,14 +2481,7 @@ void PlayerBreak(void)
 	int votes;
 	gedict_t *p;
 
-	if (isRACE() && !race_match_mode())
-	{
-		r_changestatus(2); // race_break
-
-		return;
-	}
-
-	if ((self->ct == ctSpec) && !isRACE())
+	if ((self->ct == ctSpec))
 	{
 		if (!cvar("k_auto_xonx") || k_matchLess)
 		{

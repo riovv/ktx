@@ -55,7 +55,7 @@ void player_stand1(void)
 		return;
 	}
 
-	if ((self->s.v.weapon == IT_AXE) || (self->s.v.weapon == IT_HOOK))
+	if (self->s.v.weapon == IT_AXE)
 	{
 		if (self->walkframe >= 12)
 		{
@@ -92,7 +92,7 @@ void player_run(void)
 		return;
 	}
 
-	if (self->s.v.weapon == IT_AXE || self->s.v.weapon == IT_HOOK)
+	if (self->s.v.weapon == IT_AXE)
 	{
 		if (self->walkframe >= 6)
 		{
@@ -133,77 +133,6 @@ void muzzleflash(void)
 	WriteByte( MSG_MULTICAST, SVC_MUZZLEFLASH);
 	WriteEntity( MSG_MULTICAST, self);
 	trap_multicast(PASSVEC3(self->s.v.origin), MULTICAST_PVS);
-}
-
-void player_chain1(void)
-{
-	self->s.v.frame = 137;
-	self->think = (func_t) player_chain2;
-	self->s.v.nextthink = next_frame();
-	self->s.v.weaponframe = 2;
-	GrappleThrow();
-}
-
-void player_chain2(void)
-{
-	self->s.v.frame = 138;
-	self->think = (func_t) player_chain3;
-	self->s.v.nextthink = next_frame();
-	self->s.v.weaponframe = 3;
-}
-
-void player_chain3(void)
-{
-	self->s.v.frame = 139;
-	self->s.v.weaponframe = 3;
-
-	if (!self->hook_out)
-	{
-		player_chain5();
-	}
-	else if (vlen(self->s.v.velocity) >= 750)
-	{
-		player_chain4();
-	}
-
-	else
-	{
-		self->think = (func_t) player_chain3;
-		self->s.v.nextthink = next_frame();
-	}
-}
-
-void player_chain4(void)
-{
-	// Original ctf grapple used frame 73 here, but that causes problems with cl_deadbodyfilter 2
-	// Frame 139 is a decent alternative especially given that 73 never looked good anyway
-	// self->s.v.frame = 73;
-	self->s.v.frame = 139;
-	self->s.v.weaponframe = 4;
-
-	if (!self->hook_out)
-	{
-		player_chain5();
-	}
-	else if (vlen(self->s.v.velocity) < 750)
-	{
-		player_chain3();
-	}
-	else
-	{
-		self->think = (func_t) player_chain4;
-		self->s.v.nextthink = next_frame();
-	}
-}
-
-void player_chain5(void)
-{
-	self->s.v.frame = 140;
-	self->s.v.weaponframe = 5;
-	self->walkframe = 0;
-
-	self->think = (func_t) player_run;
-	self->s.v.nextthink = next_frame();
 }
 
 void player_shot1(void)
@@ -1088,7 +1017,7 @@ void GibPlayer(void)
 
 	self->vw_index = 0;
 
-	if (isRACE() || bloodfest_round_connect)
+	if (bloodfest_round_connect)
 	{
 		ThrowHead("", self->s.v.health);
 	}
@@ -1107,11 +1036,6 @@ void GibPlayer(void)
 		ThrowGib("progs/gib1.mdl", self->s.v.health);
 		ThrowGib("progs/gib2.mdl", self->s.v.health);
 		ThrowGib("progs/gib3.mdl", self->s.v.health);
-	}
-
-	if (isRACE() && race.status)
-	{
-		return;
 	}
 
 	// spawn temporary entity.
@@ -1142,19 +1066,6 @@ void PlayerDie(void)
 	}
 
 	DropPowerups();
-
-	if (isCTF())
-	{
-		if (self->hook_out)
-		{
-			GrappleReset(self->hook);
-			self->attack_finished = g_globalvars.time + 0.75;
-			self->hook_out = true; // FIXME: for which reason this set to true?
-		}
-
-		DropRune();
-		PlayerDropFlag(self, false);
-	}
 
 	TeamplayDeathEvent(self);
 #ifdef BOT_SUPPORT

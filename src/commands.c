@@ -56,19 +56,6 @@ void ChangeOvertime(void);
 void ChangeOvertimeUp(void);
 void ChangeTP(void);
 void ToggleFallBunny(void);
-// { CTF
-void FlagStatus(void);
-void TossFlag(void);
-void norunes(void);
-void nohook(void);
-void hooksmooth(void);
-void hookfast(void);
-void hookclassic(void);
-void hookcrhook(void);
-void noga(void);
-void mctf(void);
-void CTFBasedSpawn(void);
-// } CTF
 void FragsDown(void);
 void FragsUp(void);
 void ListWhoNot(void);
@@ -235,36 +222,6 @@ void TimeSet(float t);
 
 void cmdslist_dl(void);
 void mapslist_dl(void);
-
-// { RACE
-void r_cdel(void);
-void r_clear_route(void);
-void r_Xset(float t);
-void r_changestatus(float t);
-void r_changefollowstatus(float t);
-
-void r_timeout(void);
-void r_falsestart(void);
-void r_mode(void);
-void r_all_break(void);
-
-void r_route(void);
-void r_print(void);
-
-void race_display_line(void);
-void display_scores(void);
-void display_record_details(void);
-void race_chasecam_change(void);
-void race_chasecam_freelook_change(void);
-void race_download_record_demo(void);
-void race_pacemaker(void);
-void race_simultaneous_toggle(void);
-void race_match_toggle(void);
-qbool race_match_mode(void);
-void race_switch_usermode(const char *displayName, int players_per_team);
-void race_scoring_system_toggle(void);
-void race_hide_players_toggle(void);
-// }
 
 // { CHEATS
 void giveme(void);
@@ -440,7 +397,6 @@ const char CD_NODESC[] = "no desc";
 #define CD_4ON4				"4 on 4 settings"
 #define CD_10ON10			"10 on 10 settings"
 #define CD_FFA				"FFA settings"
-#define CD_CTF				"CTF settings"
 #define CD_PRACTICE			"toggle practice mode"
 #define CD_WP_RESET			"clear weapon stats"
 #define CD_PLS_WP_STATS		"start print weapon stats"
@@ -517,18 +473,6 @@ const char CD_NODESC[] = "no desc";
 #define CD_POS_ANGLES		"set position angles"
 #define CD_POS_VELOCITY		"set position velocity"
 #define CD_SH_SPEED			"toggle use show speed"
-#define CD_TOSSRUNE			"drop rune (CTF)"
-#define CD_TOSSFLAG			"drop flag (CTF)"
-#define CD_FLAGSTATUS		"show flags status (CTF)"
-#define CD_NOHOOK			"toggle hook (CTF)"
-#define CD_HOOKSMOOTH			"switch Hook style settings: Smooth Hook (CTF)"
-#define CD_HOOKFAST			"switch Hook style settings: Fast Hook (CTF)"
-#define CD_HOOKCLASSIC			"switch Hook style settings: Classic Hook (CTF)"
-#define CD_HOOKCRHOOK			"switch Hook style settings: crhook (CTF)"
-#define CD_NORUNES			"toggle runes (CTF)"
-#define CD_NOGA				"toggle green armor on spawn (CTF)"
-#define CD_MCTF				"disable hook+runes (CTF)"
-#define CD_CTFBASEDSPAWN	"spawn players on the base (CTF)"
 #define CD_MOTD				"show motd"
 #define CD_INFOLOCK			"toggle specinfo perms"
 #define CD_INFOSPEC			"toggle spectator infos"
@@ -598,41 +542,6 @@ const char CD_NODESC[] = "no desc";
 #define CD_EXCLUSIVE		"toggle exclusive mode"
 #define CD_VWEP				"toggle vweps"
 #define CD_PAUSE			"toggle pause"
-// { RACE
-#define CD_RACE				"toggle race mode"
-#define	CD_R_COUNTDOWN_UP		"+1 sec race cowntdown time"
-#define	CD_R_COUNTDOWN_DOWN		"-1 sec race cowntdown time"
-#define CD_R_SSET			"set race start checkpoint"
-#define CD_R_CSET			"set race checkpoint"
-#define CD_R_ESET			"set race end checkpoint"
-#define CD_R_CDEL			"remove race current checkpoint"
-#define CD_R_ROUTE			"load predefined routes for map"
-#define CD_C_ROUTE			"clear current route completely"
-#define CD_R_PRINT			"show race route info"
-#define CD_RREADY			"ready for race"
-#define CD_RBREAK			"not ready for race"
-#define CD_RBREAKALL		"force all racers to break"
-#define CD_RTOGGLE			"toggle ready status for race"
-#define CD_RCANCEL			"cancel current race, for racer"
-#define CD_RTIMEOUT			"set race timeout"
-#define CD_RFALSESTART		"set race starting mode"
-#define CD_RMODE			"set race weapon mode"
-#define CD_RFOLLOW			"follow racers with chasecam while waiting in line"
-#define CD_RNOFOLLOW		"don't follow racers with chasecam while waiting in line"
-#define CD_RFTOGGLE			"toggle chasecam status"
-#define CD_RCHASECAM		"cycle between chasecam views"
-#define CD_RCHASECAMFL		"toggle chasecam freelook"
-#define CD_RLINEUP			"show current race line-up"
-#define CD_RSCORES			"show top race times for current map"
-#define CD_RSCOREDETAIL		"show details about a record"
-#define CD_RDLDEMO			"download demo for a record"
-#define CD_RPACEMAKER		"set pacemaker"
-#define CD_RSIMULMODE		"toggle simultaneous racing"
-#define CD_RMATCHMODE		"toggle race match mode"
-#define CD_RSCORINGMODE		"toggle between scoring systems"
-#define CD_RHIDEPLAYERS		"toggle visible players during race"
-// }
-
 #define CD_NOSPECS			"allow/disallow spectators"
 #define CD_NOITEMS			"allow/disallow items in game"
 #define CD_TEAMOVERLAY		"allow/disallow teamoverlay"
@@ -670,10 +579,7 @@ void redirect(void);
 
 cmd_t cmds[] =
 {
-	{ "race", 						ToggleRace, 					0, 			CF_PLAYER | CF_SPC_ADMIN, 												CD_RACE },
-	{ "race_countdown_up",					DEF(RaceCountdownChange),			1,			CF_PLAYER | CF_SPC_ADMIN,												CD_R_COUNTDOWN_UP},
-	{ "race_countdown_down",				DEF(RaceCountdownChange),			-1,			CF_PLAYER | CF_SPC_ADMIN,												CD_R_COUNTDOWN_DOWN},
-	{ "cm", 						SelectMap, 						0, 			CF_BOTH | CF_MATCHLESS | CF_NOALIAS, 									CD_NODESC },
+	{ "cm",						SelectMap, 						0, 			CF_BOTH | CF_MATCHLESS | CF_NOALIAS, 									CD_NODESC },
 	{ "mapslist_dl", 				mapslist_dl, 					0, 			CF_BOTH | CF_MATCHLESS | CF_PARAMS | CF_NOALIAS | CF_CONNECTION_FLOOD, 	CD_MAPSLIST_DL },
 	{ "cmdslist_dl", 				cmdslist_dl, 					0, 			CF_BOTH | CF_MATCHLESS | CF_PARAMS | CF_NOALIAS | CF_CONNECTION_FLOOD, 	CD_CMDSLIST_DL },
 	{ "votemap", 					VoteMap, 						0, 			CF_BOTH | CF_MATCHLESS | CF_PARAMS, 									CD_VOTEMAP },
@@ -789,8 +695,7 @@ cmd_t cmds[] =
 	{ "4on4", 						DEF(UserMode), 					4, 			CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS, 									CD_4ON4 },
 	{ "10on10", 					DEF(UserMode), 					5, 			CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS,									CD_10ON10 },
 	{ "ffa", 						DEF(UserMode), 					6, 			CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS, 									CD_FFA },
-	{ "ctf", 						DEF(UserMode), 					7, 			CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS, 									CD_CTF },
-	{ "2on2on2", 					DEF(UserMode), 					8, 			CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS, 									CD_2ON2ON2 },
+	{ "2on2on2",					DEF(UserMode), 					8, 			CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS, 									CD_2ON2ON2 },
 	{ "3on3on3", 					DEF(UserMode), 					9, 			CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS, 									CD_3ON3ON3 },
 	{ "4on4on4", 					DEF(UserMode), 					10, 		CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS, 									CD_4ON4ON4 },
 	{ "XonX", 						DEF(UserMode), 					11, 		CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS, 									CD_XONX },
@@ -881,20 +786,7 @@ cmd_t cmds[] =
 	//	{ "pos_velocity", DEF(Pos_Set), 							3, 			CF_BOTH | CF_PARAMS, 													CD_POS_VELOCITY },
 	{ "sh_speed", 					Sh_Speed, 						0, 			CF_BOTH, 																CD_SH_SPEED },
 	// { CTF commands
-	{ "tossrune", 					TossRune, 						0, 			CF_PLAYER | CF_MATCHLESS, 												CD_TOSSRUNE },
-	{ "tossflag", 					TossFlag, 						0, 			CF_PLAYER | CF_MATCHLESS, 												CD_TOSSFLAG },
-	{ "nohook", 					nohook, 						0, 			CF_PLAYER | CF_MATCHLESS, 											CD_NOHOOK },
-	{ "hook_smooth", 				hooksmooth, 					0, 			CF_PLAYER | CF_MATCHLESS, 											CD_HOOKSMOOTH },
-	{ "hook_fast", 					hookfast, 					0, 			CF_PLAYER | CF_MATCHLESS, 											CD_HOOKFAST },
-	{ "hook_classic", 				hookclassic, 					0, 			CF_PLAYER | CF_MATCHLESS, 											CD_HOOKCLASSIC },
-	{ "hook_crhook",				hookcrhook, 					0, 			CF_PLAYER | CF_MATCHLESS, 											CD_HOOKCRHOOK },
-	{ "norunes", 					norunes, 						0, 			CF_PLAYER | CF_MATCHLESS, 											CD_NORUNES },
-	{ "noga", 						noga, 							0, 			CF_BOTH_ADMIN | CF_MATCHLESS, 											CD_NOGA },
-	{ "mctf", 						mctf, 							0, 			CF_BOTH_ADMIN | CF_MATCHLESS, 											CD_MCTF },
-	{ "flagstatus", 				FlagStatus, 					0, 			CF_BOTH | CF_MATCHLESS, 												CD_FLAGSTATUS },
 	{ "swapall", 					SwapAll, 						0, 			CF_PLAYER | CF_SPC_ADMIN, 												CD_SWAPALL },
-
-	{ "ctfbasedspawn", 				CTFBasedSpawn, 					0, 			CF_PLAYER | CF_SPC_ADMIN | CF_MATCHLESS, 								CD_CTFBASEDSPAWN },
 	// }
 	{ "motd", 						motd_show, 						0, 			CF_BOTH | CF_MATCHLESS, 												CD_MOTD },
 	{ "infolock", 					infolock, 						0, 			CF_BOTH_ADMIN, 															CD_INFOLOCK },
@@ -965,35 +857,6 @@ cmd_t cmds[] =
 	{ "exclusive", 					ToggleExclusive, 				0, 			CF_BOTH_ADMIN, 															CD_EXCLUSIVE },
 	{ "vwep", 						ToggleVwep, 					0, 			CF_PLAYER | CF_SPC_ADMIN, 												CD_VWEP },
 	{ "pause", 						TogglePause, 					0, 			CF_PLAYER | CF_MATCHLESS | CF_SPC_ADMIN, 								CD_PAUSE },
-	// { RACE
-	{ "race_ready", 				DEF(r_changestatus), 			1, 			CF_PLAYER, 																CD_RREADY },
-	{ "race_break", 				DEF(r_changestatus), 			2, 			CF_PLAYER, 																CD_RBREAK },
-	{ "race_break_all", 			r_all_break, 					0, 			CF_BOTH_ADMIN, 															CD_RBREAKALL },
-	{ "race_toggle", 				DEF(r_changestatus), 			3, 			CF_PLAYER, 																CD_RTOGGLE },
-	{ "race_cancel", 				DEF(r_changestatus), 			4, 			CF_PLAYER, 																CD_RCANCEL },
-	{ "race_show_lineup", 			race_display_line, 				0, 			CF_BOTH, 																CD_RLINEUP },
-	{ "race_show_toptimes", 		display_scores, 				0, 			CF_BOTH, 																CD_RSCORES },
-	{ "race_show_record_details", 	display_record_details, 		0, 			CF_BOTH | CF_PARAMS, 													CD_RSCOREDETAIL },
-	{ "race_show_route", 			r_print, 						0, 			CF_BOTH, 																CD_R_PRINT },
-	{ "race_set_start", 			DEF(r_Xset), 					1, 			CF_PLAYER | CF_SPC_ADMIN, 												CD_R_SSET },
-	{ "race_set_finish", 			DEF(r_Xset), 					3, 			CF_PLAYER | CF_SPC_ADMIN, 												CD_R_ESET },
-	{ "race_set_checkpoint", 		DEF(r_Xset), 					2, 			CF_PLAYER | CF_SPC_ADMIN, 												CD_R_CSET },
-	{ "race_del_checkpoint", 		r_cdel, 						0, 			CF_PLAYER | CF_SPC_ADMIN, 												CD_R_CDEL },
-	{ "race_set_timeout", 			r_timeout, 						0, 			CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS, 									CD_RTIMEOUT },
-	{ "race_set_falsestart", 		r_falsestart, 					0, 			CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS, 									CD_RFALSESTART },
-	{ "race_set_weapon_mode", 		r_mode, 						0, 			CF_PLAYER | CF_SPC_ADMIN, 												CD_RMODE },
-	{ "race_route_switch", 			r_route, 						0, 			CF_PLAYER | CF_SPC_ADMIN, 												CD_R_ROUTE },
-	{ "race_route_clear", 			r_clear_route, 					0, 			CF_PLAYER | CF_SPC_ADMIN, 												CD_C_ROUTE },
-	{ "race_chasecam", 				DEF(r_changefollowstatus), 		3, 			CF_PLAYER, 																CD_RFTOGGLE },
-	{ "race_chasecam_view", 		race_chasecam_change, 			0, 			CF_PLAYER, 																CD_RCHASECAM },
-	{ "race_chasecam_freelook", 	race_chasecam_freelook_change, 	0, 			CF_PLAYER, 																CD_RCHASECAMFL },
-	{ "race_dl_record_demo", 		race_download_record_demo, 		0, 			CF_BOTH | CF_PARAMS, 													CD_RDLDEMO },
-	{ "race_pacemaker", 			race_pacemaker, 				0, 			CF_PLAYER | CF_PARAMS, 													CD_RPACEMAKER },
-	{ "race_simultaneous", 			race_simultaneous_toggle, 		0, 			CF_PLAYER, 																CD_RSIMULMODE },
-	{ "race_match", 				race_match_toggle, 				0, 			CF_PLAYER, 																CD_RMATCHMODE },
-	{ "race_scoring", 				race_scoring_system_toggle, 	0, 			CF_PLAYER, 																CD_RSCORINGMODE },
-	{ "race_hide_players", 			race_hide_players_toggle, 		0, 			CF_PLAYER, 																CD_RHIDEPLAYERS },
-	// }
 	{ "nospecs", 					nospecs, 						0, 			CF_PLAYER | CF_SPC_ADMIN, 												CD_NOSPECS },
 	{ "noitems", 					noitems, 						0, 			CF_PLAYER | CF_SPC_ADMIN, 												CD_NOITEMS },
 	{ "teamoverlay", 				teamoverlay, 					0, 			CF_PLAYER | CF_SPC_ADMIN, 												CD_TEAMOVERLAY },
@@ -1898,21 +1761,6 @@ void ModStatus2(void)
 	{
 		G_sprint(self, 2, "%s:  FFA\n", redtext("Server mode"));
 	}
-	else if (isCTF())
-	{
-		G_sprint(self, 2, "%s:  CTF\n", redtext("Server mode"));
-		G_sprint(
-				self,
-				2,
-				"%s: %s\n",
-				redtext("Server locking"),
-				(!cvar("k_lockmode") ?
-						"off" :
-						(cvar("k_lockmode") == 2 ?
-								"all" : (cvar("k_lockmode") == 1 ? "team" : "unknown"))));
-		G_sprint(self, 2, "%s: hook %s, runes %s, ga %s\n", redtext("CTF settings"),
-					OnOff(cvar("k_ctf_hook")), OnOff(cvar("k_ctf_runes")), OnOff(cvar("k_ctf_ga")));
-	}
 	else if (isTeam())
 	{
 		G_sprint(self, 2, "%s: team\n", redtext("Server mode"));
@@ -2244,62 +2092,6 @@ void ModStatusVote(void)
 		}
 	}
 
-  if (!match_in_progress)
-	{
-		if ((votes = get_votes(OV_HOOKSMOOTH)))
-		{
-			voted = true;
-
-			G_sprint(self, 2, "\220%d/%d\221 vote%s to change hookstyle to %s\n", votes,
-						get_votes_req(OV_HOOKSMOOTH, false), count_s(votes), redtext("smooth"));
-
-			for (p = world; (p = find_client(p));)
-			{
-				if (p->v.hooksmooth)
-				{
-					G_sprint(self, 2, " %s\n", p->netname);
-				}
-			}
-		}
-	}
-
-	if (!match_in_progress)
-	{
-		if ((votes = get_votes(OV_HOOKFAST)))
-		{
-			voted = true;
-
-			G_sprint(self, 2, "\220%d/%d\221 vote%s to change hookstyle to %s\n", votes,
-						get_votes_req(OV_HOOKFAST, false), count_s(votes), redtext("fast"));
-
-			for (p = world; (p = find_client(p));)
-			{
-				if (p->v.hookfast)
-				{
-					G_sprint(self, 2, " %s\n", p->netname);
-				}
-			}
-		}
-	}
-
-	if (!match_in_progress)
-	{
-		if ((votes = get_votes(OV_HOOKCLASSIC)))
-		{
-			voted = true;
-
-			G_sprint(self, 2, "\220%d/%d\221 vote%s to change hookstyle to %s\n", votes,
-						get_votes_req(OV_HOOKCLASSIC, false), count_s(votes), redtext("classic"));
-
-			for (p = world; (p = find_client(p));)
-			{
-				if (p->v.hookclassic)
-				{
-					G_sprint(self, 2, " %s\n", p->netname);
-				}
-			}
-		}
-	}
 
 	if (voted)
 	{
@@ -2860,7 +2652,7 @@ void ChangeTP(void)
 		return;
 	}
 
-	if (!isTeam() && !isCTF())
+	if (!isTeam())
 	{
 		G_sprint(self, 3, "console: non team mode disallows you to change teamplay setting\n");
 
@@ -3241,15 +3033,6 @@ void ShowRules(void)
 	{
 		G_sprint(self, 2, "Server is in duel mode.\n");
 	}
-	else if (isCTF())
-	{
-		G_sprint(self, 2, "Server is in CTF mode.\n"
-					"Additional commands/impulses:\n"
-					"impulse 22 : Grappling Hook\n"
-					"tossrune   : Toss your current rune\n"
-					"tossflag   : Toss carried flag\n"
-					"flagstatus : Displays flag information\n");
-	}
 	else if (isFFA())
 	{
 		G_sprint(self, 2, "Server is in FFA mode.\n");
@@ -3320,7 +3103,7 @@ void TeamSay(float fsndname)
 
 	for (p = world; (p = find_plr(p));)
 	{
-		if ((p != self) && (isTeam() || isCTF()) && !strnull(p->netname)
+		if ((p != self) && isTeam() && !strnull(p->netname)
 				&& (iKey(p, "kf") & KF_KTSOUNDS))
 		{
 			if (streq(getteam(self), getteam(p)))
@@ -3522,7 +3305,7 @@ void PlayerStats(void)
 
 	G_sprint(self, 2, "\235\236\236\236\236\236\236\236\236\236\236"
 				"\236\236\236\236\236\236\236\236\236\236\236\236\236\236\236%s\237\n",
-				((isTeam() || isCTF()) ? "\236\236\236\236\236\236\236\236\236\236" : ""));
+				(isTeam() ? "\236\236\236\236\236\236\236\236\236\236" : ""));
 
 	for (p = world; (p = find_plr(p));)
 	{
@@ -3540,7 +3323,7 @@ void PlayerStats(void)
 				continue; // already served or not on the same team
 			}
 
-			if (isTeam() || isCTF())
+			if (isTeam())
 			{
 				G_sprint(self, 2, "\220%.4s\221 ", tmp);
 				for (i = strlen(tmp); i < tL; i++)
@@ -3555,16 +3338,10 @@ void PlayerStats(void)
 				G_sprint(self, 2, " ");
 			}
 
-			stats = va(
-					"%d",
-					(!isCTF() ? (int)p2->s.v.frags : (int)(p2->s.v.frags - p2->ps.ctf_points)));
+			stats = va("%d", (int)p2->s.v.frags);
 			G_sprint(self, 2, "%3s", stats); // frags
 
-			stats = va(
-					"%d",
-					(!isCTF() ?
-							(int)(p2->s.v.frags - p2->deaths) :
-							(int)(p2->s.v.frags - p2->ps.ctf_points - p2->deaths)));
+			stats = va("%d", (int)(p2->s.v.frags - p2->deaths));
 			G_sprint(self, 2, "%4s ", stats); // rank
 
 			if (isTeam())
@@ -3573,28 +3350,13 @@ void PlayerStats(void)
 				G_sprint(self, 2, "%2s ", stats);
 			}
 
-			if (isCTF())
+			if (p2->s.v.frags < 1)
 			{
-				if ((p2->s.v.frags - p2->ps.ctf_points) < 1)
-				{
-					p2->efficiency = 0;
-				}
-				else
-				{
-					p2->efficiency = (p2->s.v.frags - p2->ps.ctf_points)
-							/ (p2->s.v.frags - p2->ps.ctf_points + p2->deaths) * 100;
-				}
+				p2->efficiency = 0;
 			}
 			else
 			{
-				if (p2->s.v.frags < 1)
-				{
-					p2->efficiency = 0;
-				}
-				else
-				{
-					p2->efficiency = p2->s.v.frags / (p2->s.v.frags + p2->deaths) * 100;
-				}
+				p2->efficiency = p2->s.v.frags / (p2->s.v.frags + p2->deaths) * 100;
 			}
 
 			stats = va("%3.1f", p2->efficiency);
@@ -3748,7 +3510,7 @@ void ShowNick(void)
 	{
 		; // allow shownick in prewar anyway
 	}
-	else if (!isTeam() && !isCTF())
+	else if (!isTeam())
 	{
 		return;
 	}
@@ -4105,7 +3867,6 @@ const char common_um_init[] =
 	"k_noitems \"\"\n"				// reset to default
 	"k_clan_arena 0\n"				// disable Clan Arena by default
 	"k_rocketarena 0\n"				// disable Rocket Arena by default
-	"k_race 0\n"					// disable Race by default
 	"k_freshteams 0\n"				// disable FreshTeams by default
 	"k_nosweep 0\n"					// disable nosweep by default
 	"k_spec_info 1\n"				// allow spectators receive took info during game
@@ -4302,30 +4063,6 @@ const char ffa_um_init[] =
 	"k_bzk 0\n"						// berzerk mode on ;)
 ;
 
-const char ctf_um_init[] =
-	"sv_loadentfiles_dir ctf\n"
-	"pm_airstep 1\n"
-	"coop 0\n"
-	"maxclients 16\n"
-	"k_maxclients 16\n"
-	"timelimit 10\n"
-	"teamplay 4\n"
-	"deathmatch 3\n"
-	"k_dis 2\n"						// no out of water discharges in ctf
-	"k_pow 1\n"
-	"k_spw 1\n"
-	"k_membercount 0\n"
-	"k_lockmin 1\n"
-	"k_lockmax 2\n"
-	"k_overtime 1\n"
-	"k_exttime 5\n"
-	"k_mode 4\n"
-	"k_ctf_based_spawn 1\n"			// team based spawn
-	"k_ctf_hook 0\n"				// hook off
-	"k_ctf_runes 0\n"				// runes off
-	"k_ctf_ga 1\n"					// green armor on
-;
-
 
 const char tot_um_init[] =
 	"deathmatch 4\n"
@@ -4359,8 +4096,7 @@ usermode um_list[] =
 	{ "4on4", 		"\226 on \226", 		_4on4_um_init, 		UM_4ON4, 	 4 },
 	{ "10on10", 	"\223\222 on \223\222", _10on10_um_init, 	UM_10ON10, 	10 },
 	{ "ffa", 		"ffa", 					ffa_um_init, 		UM_FFA, 	-1 },
-	{ "ctf", 		"ctf", 					ctf_um_init, 		UM_CTF, 	 0 },
-	{ "2on2on2", 	"\224 on \224 on \224", _2on2on2_um_init, 	UM_2ON2ON2,	 0 },
+	{ "2on2on2",	"\224 on \224 on \224", _2on2on2_um_init, 	UM_2ON2ON2,	 0 },
 	{ "3on3on3", 	"\225 on \225 on \225", _3on3on3_um_init, 	UM_3ON3ON3,	 0 },
 	{ "4on4on4", 	"\226 on \226 on \226", _4on4on4_um_init, 	UM_4ON4ON4,	 0 },
 	{ "XonX", 		"X on X", 				_XonX_um_init, 		UM_XONX,	 0 },
@@ -4478,16 +4214,6 @@ void UserMode(float umode)
 
 	um = um_list[(int)umode].name;
 
-	if (isRACE())
-	{
-		if (!sv_invoked)
-		{
-			race_switch_usermode(um, um_list[(int)umode].race_plrs_per_team);
-		}
-
-		return;
-	}
-
 	if (!k_matchLess) // allow for matchless mode
 	{
 		if (!is_rules_change_allowed())
@@ -4549,43 +4275,6 @@ void UserMode(float umode)
 		return;
 	}
 
-#ifdef CTF_RELOADMAP
-
-	if ((!isCTF() && (um_list[(int)umode].um_flags & UM_CTF))
-			|| (isCTF() && !(um_list[(int)umode].um_flags & UM_CTF)))
-	{
-		skip_fixrules = 2; // skip FixRules for 2 frames, or we get some teamplay warning
-	}
-
-#else
-	// We invoke ctf command.
-	// So we need check ready players, and if they have wrong teams, discard ctf command
-	// untill they type break or fix team names.
-	// After ctf mode activated no one can have wrong team and be ready at the same time.
-	if (!isCTF() && (um_list[(int)umode].um_flags & UM_CTF))
-	{
-		gedict_t	*p;
-
-		for (p = world; (p = find_plr(p));)
-		{
-			if (p->ready && (!streq(getteam(p), "blue") && !streq(getteam(p), "red")))
-			{
-				if (sv_invoked)
-				{
-					G_bprint(2, "UserMode: sv %s discarded due to ready players have not red or blue team\n", um);
-				}
-				else
-				{
-					G_sprint(self, 2, "command discarded due to ready players have not red or blue team\n"
-						"either force they fix team or be not ready\n" );
-				}
-
-				return;
-			}
-		}
-	}
-#endif
-
 	if (!k_matchLess)
 	{ // do not show for matchless mode
 		if (sv_invoked)
@@ -4614,12 +4303,6 @@ void UserMode(float umode)
 	}
 
 	cfg_name = va("configs/usermodes/%s/default.cfg", um);
-	// If CTF matchless mode, load config from /matchless/ctf.cfg instead of /matchless/default.cfg
-	// isCTF() and k_mode aren't reliable to use here, so define "k_use_matchless_dir 2" for this purpose
-	if (streq(um, "matchless") && (cvar("k_use_matchless_dir") == 2))
-	{
-		cfg_name = va("configs/usermodes/%s/ctf.cfg", um);
-	}
 
 	if (can_exec(cfg_name))
 	{
@@ -5953,12 +5636,6 @@ void ktpro_autotrack_on_powerup_out(gedict_t *dude)
 	 */
 }
 
-// change pov to racer
-void ktpro_autotrack_on_race_status_changed(void)
-{
-	ktpro_autotrack_mark_all("race_status_changed", NULL);
-}
-
 void ktpro_autotrack_predict_powerup(void)
 {
 	extern float visible(gedict_t *targ);
@@ -6110,7 +5787,7 @@ void next_pow(void)
 // pos_show/pos_save/pos_move/pos_set_* commands {
 //================================================
 // common functions
-#define Pos_Disallowed()	(match_in_progress || intermission_running || cvar( "sv_paused" ) || (isRACE() && race.status))
+#define Pos_Disallowed()	(match_in_progress || intermission_running || cvar( "sv_paused" ))
 // parse pos_show/pos_save/pos_move <number>
 int Pos_Get_idx(void)
 {
@@ -6346,11 +6023,6 @@ void SwapAll(void)
 		return;
 	}
 
-	if (!isCTF())
-	{
-		return;
-	}
-
 	if (k_captains)
 	{
 		G_sprint(self, 2, "No swapall when captain stuffing\n");
@@ -6465,12 +6137,6 @@ char* lastscores2str(lsType_t lst)
 		case lsFFA:
 			return "FFA";
 
-		case lsCTF:
-			return "CTF";
-
-		case lsRACE:
-			return "race";
-
 		default:
 			return "unknown";
 	}
@@ -6528,16 +6194,9 @@ void lastscore_add(void)
 			}
 		}
 	}
-	else if ((isTeam() || isCTF()) && k_showscores)
+	else if (isTeam() && k_showscores)
 	{
-		if (isTeam())
-		{
-			lst = lsTeam;
-		}
-		else
-		{
-			lst = lsCTF;
-		}
+		lst = lsTeam;
 
 		e1 = cvar_string("_k_team1");
 		s1 = get_scores1();
@@ -6586,11 +6245,6 @@ void lastscore_add(void)
 	if (lst == lsUnknown) // sorry but something wrong
 	{
 		return;
-	}
-
-	if (isRACE())
-	{
-		lst = lsRACE;
 	}
 
 	if (!QVMstrftime(date, sizeof(date), "%b %d, %H:%M:%S %Y", 0))
@@ -6684,7 +6338,7 @@ void lastscores(void)
 		// generally show members one time while show scores for each played map,
 		// but if squad changed from previuos map, show members again,
 		// so we know which squad played each map.
-		if (extended && ((cur == lsTeam) || (cur == lsCTF)))
+		if (extended && (cur == lsTeam))
 		{
 			if (strneq(lt1, t1)) // first team
 			{
@@ -6796,7 +6450,7 @@ void mi_print(gedict_t *tooker, int it, char *msg)
 			continue;
 		}
 
-		if (isTeam() || isCTF())
+		if (isTeam())
 		{
 			G_sprint(p, 2, "\204\220%4.4s\221 %s\n", t_team, msg);
 		}
@@ -7624,12 +7278,6 @@ void GrenadeMode(void)
 
 void ToggleReady(void)
 {
-	if (isRACE())
-	{
-		r_changestatus(3); // race_toggle
-		return;
-	}
-
 	if (self->ready)
 	{
 		PlayerBreak();
@@ -8231,7 +7879,7 @@ void mapcycle(void)
 
 void airstep(void)
 {
-	if (match_in_progress || isRACE())
+	if (match_in_progress)
 	{
 		return;
 	}
@@ -8547,10 +8195,7 @@ void noitems(void)
 
 void giveme_usage(void)
 {
-	G_sprint(self, 2, "giveme <q|p|r|s> [seconds]\n"
-				"giveme rune [1|2|3|4]\n"
-				"giveme runes\n"
-				"giveme norunes\n");
+	G_sprint(self, 2, "giveme <q|p|r|s> [seconds]\n");
 }
 
 void giveme(void)
@@ -8613,26 +8258,6 @@ void giveme(void)
 		self->s.v.items = (int)self->s.v.items | IT_SUIT;
 		got = "suit";
 	}
-	else if (streq(arg_2, "rune"))
-	{
-		int rune = bound(0, seconds - 1, 3);
-
-		g_globalvars.serverflags = (int)g_globalvars.serverflags | (1 << rune);
-
-		return;
-	}
-	else if (streq(arg_2, "runes"))
-	{
-		g_globalvars.serverflags = (int)g_globalvars.serverflags | 15;
-
-		return;
-	}
-	else if (streq(arg_2, "norunes"))
-	{
-		g_globalvars.serverflags = (int)g_globalvars.serverflags & ~15;
-
-		return;
-	}
 	else
 	{
 		giveme_usage();
@@ -8647,14 +8272,6 @@ qbool is_rules_change_allowed(void)
 	if (match_in_progress)
 	{
 		G_sprint(self, 2, "Command is locked while %s is in progress\n", redtext("match"));
-
-		return false;
-	}
-
-	if (isRACE())
-	{
-		G_sprint(self, 2, "%s is on, please toggle it off by using %s command first\n",
-					redtext("race mode"), redtext("race"));
 
 		return false;
 	}
@@ -9126,7 +8743,6 @@ void ListGameModes(void)
 {
 	const char *known[] =
 	{
-		"race",
 		"1on1",
 		"2on2",
 		"3on3",

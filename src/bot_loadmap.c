@@ -390,43 +390,40 @@ static void CustomiseFrogbotMap(void)
 	}
 
 	// Expand bounding box of all items
-	if (!isRACE())
+	for (ent = world; (ent = nextent(ent));)
 	{
-		for (ent = world; (ent = nextent(ent));)
+		if (streq(ent->classname, "info_teleport_destination")
+				|| streq(ent->classname, "info_player_deathmatch"))
 		{
-			if (streq(ent->classname, "info_teleport_destination")
-					|| streq(ent->classname, "info_player_deathmatch"))
-			{
-				continue;
-			}
+			continue;
+		}
 
-			if (streq(ent->classname, "marker"))
-			{
-				vec3_t mins =
-					{ -65, -65, -24 };
-				vec3_t maxs =
-					{ 65, 65, 32 };
-				vec3_t viewoffset =
-					{ 80, 80, 24 };
-				int i;
+		if (streq(ent->classname, "marker"))
+		{
+			vec3_t mins =
+				{ -65, -65, -24 };
+			vec3_t maxs =
+				{ 65, 65, 32 };
+			vec3_t viewoffset =
+				{ 80, 80, 24 };
+			int i;
 
-				for (i = 0; i < 3; ++i)
+			for (i = 0; i < 3; ++i)
+			{
+				if (ent->fb.fixed_size[i])
 				{
-					if (ent->fb.fixed_size[i])
-					{
-						mins[i] = -ent->fb.fixed_size[i] / 2 - (i < 2 ? 15 : 0);
-						maxs[i] = ent->fb.fixed_size[i] / 2 - (i < 2 ? 15 : 0);
-						viewoffset[i] = (maxs[i] - mins[i]) / 2;
-					}
+					mins[i] = -ent->fb.fixed_size[i] / 2 - (i < 2 ? 15 : 0);
+					maxs[i] = ent->fb.fixed_size[i] / 2 - (i < 2 ? 15 : 0);
+					viewoffset[i] = (maxs[i] - mins[i]) / 2;
 				}
+			}
 
-				VectorCopy(viewoffset, ent->s.v.view_ofs);
-				setsize(ent, PASSVEC3(mins), PASSVEC3(maxs));
-			}
-			else if ((int)ent->s.v.flags & FL_ITEM)
-			{
-				PlaceItemFB(ent);
-			}
+			VectorCopy(viewoffset, ent->s.v.view_ofs);
+			setsize(ent, PASSVEC3(mins), PASSVEC3(maxs));
+		}
+		else if ((int)ent->s.v.flags & FL_ITEM)
+		{
+			PlaceItemFB(ent);
 		}
 	}
 
@@ -451,7 +448,7 @@ void LoadMap(void)
 	// Need to do this anyway, otherwise teleporters will be broken
 	CreateItemMarkers();
 
-	if (!(isRACE() || isCTF()) && deathmatch)
+	if (deathmatch)
 	{
 		// If we have a .bot file, use that
 		if (LoadBotRoutingFromFile())

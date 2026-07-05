@@ -136,7 +136,7 @@ void Spawn_DefMapChecker(float timeout)
 		ent_remove(e);
 	}
 
-	if (k_matchLess && !isCTF()) // no defmap in matchLess mode, unless CTF
+	if (k_matchLess) // no defmap in matchLess mode
 	{
 		return;
 	}
@@ -300,28 +300,6 @@ void SP_worldspawn(void)
 	trap_precache_sound("items/damage2.wav");
 	trap_precache_sound("items/damage3.wav");
 
-// ctf
-#ifdef CTF_RELOADMAP
-	if (isCTF()) // precache only if CTF is really on
-#else
-	if (k_allowed_free_modes & UM_CTF) // precache if CTF even only possible, doesn't matter if it is on or off currently
-#endif
-	{
-		trap_precache_sound("weapons/chain1.wav");
-		trap_precache_sound("weapons/chain2.wav");
-		trap_precache_sound("weapons/chain3.wav");
-		trap_precache_sound("weapons/bounce2.wav");
-		trap_precache_sound("misc/flagtk.wav");
-		trap_precache_sound("misc/flagcap.wav");
-		trap_precache_sound("doors/runetry.wav");
-		trap_precache_sound("blob/land1.wav");
-		trap_precache_sound("rune/rune1.wav");
-		trap_precache_sound("rune/rune2.wav");
-		trap_precache_sound("rune/rune22.wav");
-		trap_precache_sound("rune/rune3.wav");
-		trap_precache_sound("rune/rune4.wav");
-	}
-
 	if (cvar("k_instagib_custom_models")) // precache if custom models actived in config, even if instagib not yet activated
 	{
 		trap_precache_model("progs/v_coil.mdl");
@@ -395,62 +373,22 @@ void SP_worldspawn(void)
 
 	trap_precache_model("progs/wizard.mdl");
 
-// ctf
-	if (k_ctf_custom_models)
-	{
-		trap_precache_model("progs/v_star.mdl");
-		trap_precache_model("progs/bit.mdl");
-		trap_precache_model("progs/star.mdl");
-		trap_precache_model("progs/flag.mdl");
-	}
-	else
-	{
-		trap_precache_model("progs/v_spike.mdl");
-	}
+	trap_precache_model("progs/v_spike.mdl");
 
 // this used in alot of places, so precache it anyway
 	trap_precache_model("progs/w_g_key.mdl");
 	trap_precache_model("progs/w_s_key.mdl");
 
-// ctf runes, actually may be precached anyway, since come with full quake distro
-	if (k_allowed_free_modes & UM_CTF)
-	{
-		trap_precache_model("progs/end1.mdl");
-		trap_precache_model("progs/end2.mdl");
-		trap_precache_model("progs/end3.mdl");
-		trap_precache_model("progs/end4.mdl");
-	}
-
 // quad mdl - need this due to aerowalk customize
 	trap_precache_model("progs/quaddama.mdl");
 
-// pent mdl - need this for race and coop
+// pent mdl - need this for coop
 	trap_precache_model("progs/invulner.mdl");
-	if (cvar("k_race_custom_models"))
-	{
-		// precache if custom models actived in config
-		trap_precache_model("progs/start.mdl");
-		trap_precache_model("progs/check.mdl");
-		trap_precache_model("progs/finish.mdl");
-	}
 
 // pent sounds - need for coop
 	trap_precache_sound("items/protect.wav");
 	trap_precache_sound("items/protect2.wav");
 	trap_precache_sound("items/protect3.wav");
-
-// suit wav - need this for race
-	trap_precache_sound("items/suit.wav");
-	trap_precache_model("progs/suit.mdl");
-	trap_precache_sound("items/suit2.wav");
-
-// for race
-	trap_precache_sound("knight/sword2.wav");
-	trap_precache_sound("boss2/idle.wav");
-	trap_precache_sound("boss2/sight.wav");
-	trap_precache_sound("ambience/thunder1.wav");
-	trap_precache_sound("enforcer/enfire.wav");
-	trap_precache_sound("zombie/z_miss.wav");
 
 // g_models required for yawnmode weapondrops
 	trap_precache_model("progs/g_shot.mdl");
@@ -610,54 +548,6 @@ void Customize_Maps(void)
 		}
 	}
 
-	// Modify some ctf maps
-	if (k_allowed_free_modes & UM_CTF)
-	{
-		if (!cvar("k_ctf_based_spawn") && (find_cnt(FOFCLSN, "info_player_deathmatch") <= 1))
-		{
-			G_sprint(self, 2, "Spawn on base enforced due to map limitation\n");
-			cvar_fset("k_ctf_based_spawn", 1);
-		}
-
-		if (streq("ctf8", mapname))
-		{
-			// fix/remove some bad spawns from ctf8
-			vec3_t spawn1 =
-				{ 1704, -540, 208 }; // blue spawn in red base
-			vec3_t spawn2 =
-				{ -1132, -72, 208 }; // red spawn in blue base
-			vec3_t spawn3 =
-				{ 660, 256, 40 };  // red spawn at quad
-
-			for (p = world; (p = find(p, FOFCLSN, "info_player_team2"));)
-			{
-				if (VectorCompare(p->s.v.origin, spawn1))
-				{
-					p->classname = "info_player_team1";
-					break;
-				}
-			}
-
-			for (p = world; (p = find(p, FOFCLSN, "info_player_team1"));)
-			{
-				if (VectorCompare(p->s.v.origin, spawn2))
-				{
-					p->classname = "info_player_team2";
-					break;
-				}
-			}
-
-			for (p = world; (p = find(p, FOFCLSN, "info_player_team1"));)
-			{
-				if (VectorCompare(p->s.v.origin, spawn3))
-				{
-					ent_remove(p);
-					break;
-				}
-			}
-		}
-	}
-
 	// modify slide8 to make it possible to complete in race mode
 	if (streq(mapname, "slide8"))
 	{
@@ -700,10 +590,6 @@ void Customize_Maps(void)
 		ShowSpawnPoints();
 	}
 
-	if (isRACE())
-	{
-		r_route();
-	}
 }
 
 // create cvar via 'set' command
@@ -895,25 +781,6 @@ void FirstFrame(void)
 	RegisterCvarEx("k_freshteams_sweep_lg_ammo", "3");
 	RegisterCvarEx("k_nosweep", "0");						// can't pick up weapons you already have in dmm1
 // }
-// { race
-	RegisterCvarEx("k_race", "0");
-	RegisterCvarEx("k_race_countdown", "2");
-	RegisterCvarEx("k_race_custom_models", "0");
-	RegisterCvarEx("k_race_autorecord", "1");
-	RegisterCvarEx("k_race_times_per_port", "0");
-	RegisterCvarEx("k_race_pace_headstart", "0.5");
-	RegisterCvarEx("k_race_pace_jumps", "0");
-	RegisterCvarEx("k_race_pace_resolution", "2");
-	RegisterCvarEx("k_race_pace_legal", "0");
-	RegisterCvarEx("k_race_pace_enabled", "0");
-	RegisterCvarEx("k_race_simultaneous", "0");
-	RegisterCvarEx("k_race_match", "0");
-	RegisterCvarEx("k_race_match_rounds", "9");
-	RegisterCvarEx("k_race_scoring_system", "0");
-	RegisterCvarEx("k_race_route_number", "0");
-	RegisterCvarEx("k_race_route_mapname", "");
-	//RegisterCvarEx("k_race_topscores", "10");
-// }
 	RegisterCvar("k_bzk");
 	RegisterCvar("k_btime");
 
@@ -935,20 +802,6 @@ void FirstFrame(void)
 	RegisterCvarEx("k_classic_shotgun", "1");
 
 	RegisterCvar("k_no_fps_physics");
-//{ ctf
-	RegisterCvar("k_ctf_custom_models");
-	RegisterCvar("k_ctf_hook");
-	RegisterCvar("k_ctf_hookstyle"); // loop through hookstyle settings
-	RegisterCvar("k_ctf_runes");
-	RegisterCvarEx("k_ctf_rune_bounce", "3");
-	RegisterCvarEx("k_ctf_rune_power_str", "2.0");
-	RegisterCvarEx("k_ctf_rune_power_res", "2.0");
-	RegisterCvarEx("k_ctf_rune_power_rgn", "2.0");
-	RegisterCvarEx("k_ctf_rune_power_hst", "2.0");
-	RegisterCvar("k_ctf_ga");
-	RegisterCvar("k_ctf_based_spawn"); // spawn players on the base (red/blue)
-	RegisterCvar("k_ctf_hurt_items");
-//}
 	RegisterCvar("k_spec_info");
 	RegisterCvar("k_midair");
 	RegisterCvarEx("k_midair_minheight", "1");
@@ -1094,9 +947,6 @@ void FirstFrame(void)
 		k_allowed_free_modes |= UM_FFA;
 	}
 
-	// do not precache models if CTF is not really allowed
-	k_ctf_custom_models = cvar("k_ctf_custom_models") && (k_allowed_free_modes & UM_CTF);
-
 // use k_defmode or reuse last mode from _k_last_xonx
 	cvar_fset("_k_worldspawns", (int)cvar("_k_worldspawns") + 1);
 
@@ -1130,22 +980,12 @@ void FirstFrame(void)
 		UserMode(-cvar("_k_last_xonx")); // auto call XonX command if map switched to another
 	}
 
-// fix game rules, if cfgs some how misconfigured
-#ifdef CTF_RELOADMAP
-	k_ctf = (cvar("k_mode") == gtCTF); // emulate CTF is active so FixRules is silent
-#endif
-
 	if (matchless_was_forced)
 	{
 		trap_cvar_set_float("deathmatch", (deathmatch = 0));
 	}
 
 	FixRules();
-
-#ifdef CTF_RELOADMAP
-	k_ctf = (k_mode == gtCTF); // finaly decide is ctf active or not
-	k_ctf_custom_models = k_ctf_custom_models && (isCTF() || isRACE()); // precache only if CTF is really on
-#endif
 }
 
 // items spawned, but probably not solid yet
@@ -1237,80 +1077,6 @@ void CheckAutoXonX(qbool use_time)
 	}
 
 	old_count = count;
-}
-
-// called when switching to/from ctf mode.
-void FixCTFItems(void)
-{
-	static gameType_t old_k_mode = 0;	// static
-	static int k_ctf_runes = 0;			// static
-	static int k_ctf_hook = 0;			// static
-
-	if (framecount == 1)
-	{ // just init vars at first frame, after this we can determine if such vars changed
-		old_k_mode = k_mode;
-		k_ctf_runes = cvar("k_ctf_runes");
-		k_ctf_hook = cvar("k_ctf_hook");
-
-		return;
-	}
-
-#ifdef CTF_RELOADMAP
-	if ((old_k_mode != k_mode) && ((old_k_mode == gtCTF) || (k_mode == gtCTF)))
-	{
-		changelevel(mapname);
-	}
-#endif
-
-	if (match_in_progress)
-	{
-		return; // some optimization, ok ?
-	}
-
-	if (old_k_mode != k_mode)
-	{
-		RegenFlags(isCTF());
-	}
-
-	if ((old_k_mode != k_mode) || (k_ctf_runes != cvar("k_ctf_runes")) || (framecount == 2))
-	{
-		SpawnRunes(isCTF() && cvar("k_ctf_runes"));
-	}
-
-	if ((old_k_mode != k_mode) || (k_ctf_hook != cvar("k_ctf_hook")))
-	{
-		AddHook(isCTF() && cvar("k_ctf_hook"));
-	}
-
-	old_k_mode = k_mode;
-	k_ctf_runes = cvar("k_ctf_runes");
-	k_ctf_hook = cvar("k_ctf_hook");
-}
-
-
-void FixRace(void)
-{
-	static qbool old_k_race = false;	// static
-
-	if (framecount == 1)
-	{
-		return; // can't guess here something yet
-	}
-
-	if (framecount == 2)
-	{
-		old_k_race = isRACE();
-
-		return;
-	}
-
-	// do that even match in progress...
-	if (old_k_race != isRACE())
-	{
-		old_k_race = isRACE();
-		G_bprint(2, "%s: Race settings changed, map will be reloaded\n", redtext("WARNING"));
-		changelevel(mapname);
-	}
 }
 
 // serve k_pow and k_pow_min_players
@@ -1443,11 +1209,6 @@ void SetMode4ServerInfo(void)
 	{
 		strlcat(mode, (char *)strCurrentUmode, sizeof(mode));
 
-		if (isRACE())
-		{
-			strlcat(mode, "-race", sizeof(mode));
-		}
-
 		if (cvar("k_midair"))
 		{
 			strlcat(mode, "-midair", sizeof(mode));
@@ -1536,12 +1297,6 @@ void FixRules(void)
 		return;
 	}
 
-	// turn CTF off if CTF usermode is not allowed, due to precache_sound or precache_model
-	if (isCTF() && !(k_allowed_free_modes & UM_CTF))
-	{
-		cvar_fset("k_mode", (float)(k_mode = gtTeam));
-	}
-
 	if (coop)
 	{
 		// if we are in coop, then deathmatch should be 0
@@ -1580,34 +1335,17 @@ void FixRules(void)
 
 	if (k_matchLess)
 	{
-		// matchless mode MUST be FFA or CTF
-		if (!isFFA() && !isCTF())
+		// matchless mode MUST be FFA
+		if (!isFFA())
 		{
 			trap_cvar_set_float("k_mode", (float)(k_mode = gtFFA));
 		}
-		else if (isCTF())
-		{
-			trap_cvar_set_float("k_mode", (float)(k_mode = gtCTF));
-		}
 
-		// matchless mode should have teamplay set to 0 unless coop or CTF.
-		if (teamplay && !coop && !isCTF())
+		// matchless mode should have teamplay set to 0 unless coop
+		if (teamplay && !coop)
 		{
 			trap_cvar_set_float("teamplay", (teamplay = 0));
 		}
-
-		if (isCTF())
-		{
-			// Below commands only needed if "k_matchless 1" and "k_mode 4" are forced via rcon
-			if (!teamplay)
-			{
-				trap_cvar_set_float("teamplay", (teamplay = 2));
-			}
-
-			tp = teamplay; // Need to set this so that we don't get the "teamplay changed to: X" warning from the logic below
-			km = 4;	// Need to set this so that we don't get the "k_mode changed to: 2" warning from the logic below
-		}
-
 	}
 
 	// if unknown k_mode - set some appropriate value
@@ -1619,15 +1357,13 @@ void FixRules(void)
 	// teamplay set, but gametype is not team, disable teamplay in this case
 	if (teamplay)
 	{
-		if (!isTeam() && !isCTF() && !coop)
+		if (!isTeam() && !coop)
 		{
 			trap_cvar_set_float("teamplay", (teamplay = 0));
 		}
 	}
 
-	// gametype is team, but teamplay has wrong value, set some default value
-	// qqshka - CTF need some teamplay too?
-	if (isTeam() || isCTF())
+	if (isTeam())
 	{
 		if ((teamplay != 1) && (teamplay != 2) && (teamplay != 3) && (teamplay != 4))
 		{
@@ -1646,10 +1382,7 @@ void FixRules(void)
 	{
 		if (((timelimit == 0) && (fraglimit == 0)) || (timelimit > k_tt) || (timelimit < 0))
 		{
-			if (!isRACE())
-			{
-				cvar_fset("timelimit", timelimit = k_tt); // sensible default if no max set
-			}
+			cvar_fset("timelimit", timelimit = k_tt); // sensible default if no max set
 		}
 	}
 	else
@@ -1791,10 +1524,6 @@ void StartFrame(int time)
 
 	FixNoSpecs(); // if no players left turn off "no spectators" mode
 
-	FixCTFItems(); // if modes have changed we may need to add/remove flags etc
-
-	FixRace(); // we may need reload map
-
 	FixPowerups();
 
 	FixSpecWizards();
@@ -1824,11 +1553,6 @@ void StartFrame(int time)
 	}
 
 	CheckAll(); // just check some clients params
-
-	if (isRACE())
-	{
-		race_think();
-	}
 
 	check_monsters_respawn();
 

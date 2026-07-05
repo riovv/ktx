@@ -724,16 +724,9 @@ void changelevel_touch(void)
 
 	if (deathmatch)
 	{
-		if (isCTF())
-		{
-			// ctf has always allowed players to hide in exits, etc
-		}
-		else
-		{
-			// TODO: qqshka: I have an idea to teleport players to info_player_deathmatch instead...
-			other->deathtype = dtCHANGELEVEL;
-			T_Damage(other, self, self, 50000);
-		}
+		// TODO: qqshka: I have an idea to teleport players to info_player_deathmatch instead...
+		other->deathtype = dtCHANGELEVEL;
+		T_Damage(other, self, self, 50000);
 
 		return;
 	}
@@ -945,11 +938,6 @@ void ClientKill(void)
 		return;
 	}
 
-	if (isRACE() && race_handle_event(self, NULL, "kill"))
-	{
-		return;
-	}
-
 	if (ISDEAD(self) || !self->s.v.takedamage)
 	{
 		return; // already dead
@@ -958,13 +946,6 @@ void ClientKill(void)
 	if (self->ct != ctPlayer)
 	{
 		return; // not a player
-	}
-
-	if (isCTF() && (match_in_progress == 2) && ((g_globalvars.time - match_start_time) < 10))
-	{
-		G_sprint(self, PRINT_HIGH, "Can't suicide during first 10 seconds of CTF match\n");
-
-		return;
 	}
 
 	if (g_globalvars.time < self->suicide_time)
@@ -1335,7 +1316,7 @@ qbool CanConnect(void)
 				return false;
 			}
 		}
-		else if ((isTeam() || isCTF()))
+		else if (isTeam())
 		{
 			// don't allow if no ghost or player with team as for self
 			t = getteam(self);
@@ -1398,17 +1379,6 @@ qbool CanConnect(void)
 		return false;
 	}
 
-	// you have to be on read or blue team in CTF mode
-	if (isCTF() && (strneq(getteam(self), "red") && strneq(getteam(self), "blue")))
-	{
-		G_sprint(self, 2, "Match in progress,\n"
-					"Set your team (red or blue) before connecting\n"
-					"or reconnect as spectator\n");
-
-		// can't connect
-		return false;
-	}
-
 	// don't allow if exclusive
 	if ((CountPlayers() >= k_attendees) && cvar("k_exclusive"))
 	{
@@ -1450,7 +1420,7 @@ qbool CanConnect(void)
 			qbool teamEqual = streq(getteam(self), getteam(p));
 
 			// check teams only for team mode
-			if ((isTeam() || isCTF()) && !teamEqual)
+			if ((isTeam()) && !teamEqual)
 			{
 				G_sprint(self, 2, "Please join your old team and reconnect\n");
 
@@ -1465,7 +1435,7 @@ qbool CanConnect(void)
 				self->deaths = p->deaths;
 				self->friendly = p->friendly;
 
-				if (isTeam() || isCTF())
+				if (isTeam())
 				{
 					self->k_teamnum = p->k_teamnum; // we alredy have team in localinfo
 					G_bprint(2, "%s \220%s\221 %s %d %s%s\n", self->netname, getteam(self),
@@ -1487,7 +1457,7 @@ qbool CanConnect(void)
 		else // ghost entity not found
 		{
 			localcmd("localinfo %d \"\"\n", usrid); // remove ghost in localinfo
-			if (isTeam() || isCTF())
+			if (isTeam())
 			{
 				G_bprint(2, "%s \220%s\221 %s\n", self->netname, getteam(self),
 							redtext("reenters the game without stats"));
@@ -1500,7 +1470,7 @@ qbool CanConnect(void)
 	}
 	else
 	{ // ghost not found (localinfo)
-		if (isTeam() || isCTF())
+		if (isTeam())
 		{
 			G_bprint(2, "%s \220%s\221 %s\n", self->netname, getteam(self),
 						redtext("arrives late"));
@@ -1559,56 +1529,6 @@ void ClientConnect(void)
 		SetUserInfo(self, "team", "coop", 0);
 		// sends this to client - so he get right team too.
 		stuffcmd_flags(self, STUFFCMD_IGNOREINDEMO, "team " "coop" "\n");
-	}
-
-	// qqshka: force damn colors in CTF.
-	if (isCTF())
-	{
-		int red = 0; // Keeps track of which team and colors to set for new player
-
-		// If matchless CTF, make sure team is red or blue
-		if (k_matchLess)
-		{
-			if (!(streq(getteam(self), "red") || streq(getteam(self), "blue")))
-			{
-				// Compare number of blue and red players. If red > blue (i.e. red > 0), set new player to blue.
-				gedict_t *p;
-				for (p = world; (p = find_plr(p));)
-				{
-					if (streq(getteam(p), "red"))
-					{
-						red++;
-					}
-					else
-					{
-						red--;
-					}
-				}
-
-				SetUserInfo(self, "team", red > 0 ? "blue" : "red", 0);
-				if (red > 0)
-				{
-					stuffcmd_flags(self, STUFFCMD_IGNOREINDEMO, "team " "blue" "\n");
-				}
-				else
-				{
-					stuffcmd_flags(self, STUFFCMD_IGNOREINDEMO, "team " "red" "\n");
-				}
-
-				G_bprint(PRINT_HIGH, "%s automatically set to team: %s\n", self->netname,
-							redtext(red > 0 ? "blue" : "red"));
-			}
-			G_sprint(self, PRINT_HIGH,
-						"To change teams, /disconnect, /team red or /team blue, then /reconnect\n");
-		}
-
-		// Force colors
-		red = streq(getteam(self), "red");
-		// set proper colors.
-		SetUserInfo(self, "topcolor", red ? "4" : "13", 0);
-		SetUserInfo(self, "bottomcolor", red ? "4" : "13", 0);
-		// sends this to client - so he get right colors too.
-		stuffcmd_flags(self, STUFFCMD_IGNOREINDEMO, "color %s\n", red ? "4" : "13");
 	}
 
 	if (!CanConnect())
@@ -1769,10 +1689,7 @@ void PutClientInServer(void)
 	self->brokenankle = 0;
 
 // ctf
-	self->on_hook = false;
-	self->hook_out = false;
-	self->maxspeed = cvar("sv_maxspeed"); // qqshka - ctf stuff, discard haste rune modifier after u die
-	self->regen_time = -1;
+	self->maxspeed = cvar("sv_maxspeed");
 	self->carrier_hurt_time = -1;
 	self->ctf_flag = 0;
 
@@ -1818,24 +1735,7 @@ void PutClientInServer(void)
 		// qqshka: I found that it sux and added variable which force players spawn ONLY on the base,
 		// so maps like qwq3wcp9 works fine!
 
-		if (isCTF() && ((match_start_time == g_globalvars.time) || (cvar("k_ctf_based_spawn") == 1)))
-		{
-			spot = SelectSpawnPoint(
-					streq(getteam(self), "red") ? "info_player_team1" : "info_player_team2");
-		}
-		// Pick between neutral spawn points in the mid of the map and spawn points within home base
-		// to avoid the fish in a barrel problem where flag position is overrun by str/quad/pent and
-		// players are instagibbed over and over again.
-		else if (isCTF() && (cvar("k_ctf_based_spawn") == 2))
-		{
-			spot = SelectSpawnPoint(g_random() <= 0.5 ?
-				"info_player_deathmatch" : streq(getteam(self), "red") ?
-				"info_player_team1_deathmatch" : "info_player_team2_deathmatch");
-		}
-		else
-		{
-			spot = SelectSpawnPoint("info_player_deathmatch");
-		}
+		spot = SelectSpawnPoint("info_player_deathmatch");
 	}
 	else
 	{
@@ -1871,25 +1771,16 @@ void PutClientInServer(void)
 	trap_makevectors(self->s.v.angles);
 
 	// Play sound and add tele splash.
-	// In RA mode do that only for winner or loser.
-	// Do NOT do that in RACE.
 
 	tele_flags = TFLAGS_FOG_DST_SPAWN;
 
-	if (isRACE())
+	if (initial_match_spawns)
 	{
-		race_set_one_player_movetype_and_etc(self);
+		self->spawn_effect_queued = true;
 	}
 	else
 	{
-		if (initial_match_spawns)
-		{
-			self->spawn_effect_queued = true;
-		}
-		else
-		{
-			tele_flags |= TFLAGS_FOG_DST | TFLAGS_SND_DST;
-		}
+		tele_flags |= TFLAGS_FOG_DST | TFLAGS_SND_DST;
 	}
 
 	if ((deathmatch == 4 || k_bloodfest) && (match_in_progress == 2))
@@ -2050,21 +1941,6 @@ void PutClientInServer(void)
 		self->s.v.weapon = IT_ROCKET_LAUNCHER;
 	}
 
-	// regardless of dmm add hook if ctf.. could play instagib ctf etc
-	if (isCTF())
-	{
-		if (cvar("k_ctf_hook"))
-		{
-			self->s.v.items = (int)self->s.v.items | IT_HOOK;
-		}
-
-		if (cvar("k_ctf_ga") && deathmatch < 4 && match_in_progress == 2)
-		{
-			self->s.v.armorvalue = 50;
-			self->s.v.armortype = 0.3;
-			self->s.v.items = (int)self->s.v.items | IT_ARMOR1; // add green armor
-		}
-	}
 
 	// remove particular weapons in dmm4
 	if (deathmatch == 4 && match_in_progress == 2)
@@ -2228,7 +2104,7 @@ void Check_SD(gedict_t *p)
 			}
 
 			if (((isDuel() || isFFA()) && ed1 && ed2) // duel or ffa
-				|| (isTeam() || isCTF()) // some team
+				|| (isTeam()) // some team
 					)
 			{
 				if (abs(sc) >= tiecount())
@@ -2536,12 +2412,6 @@ void WaterMove(void)
 		return;
 	}
 
-	// in race, touching lava or slime cancels the run
-	if (isRACE() && race_handle_event(self, NULL, "watermove"))
-	{
-		return;
-	}
-
 	if (self->s.v.watertype == CONTENT_LAVA)
 	{
 		// do damage
@@ -2734,9 +2604,6 @@ void ClientDisconnect(void)
 		MakeGhost();
 	}
 
-	DropRune();
-	PlayerDropFlag(self, false);
-
 // s: added conditional function call here
 	if (self->v.elect_type != etNone)
 	{
@@ -2787,12 +2654,6 @@ void ClientDisconnect(void)
 		if (match_in_progress)
 		{
 			EndMatch(1); // skip demo, make some other stuff
-		}
-
-		// if race is on, turn it off when all players are gone
-		if (isRACE())
-		{
-			ToggleRace();
 		}
 
 		// Execute configs/reset.cfg and set k_defmode.
@@ -3102,74 +2963,7 @@ void Print_Scores(void)
 		}
 	}
 
-	if (isCTF())
-	{
-		gedict_t *flag1 = find(world, FOFCLSN, "item_flag_team1");
-		gedict_t *flag2 = find(world, FOFCLSN, "item_flag_team2");
-		char *r_f = "", *b_f = "", *rune = "";
 
-		if (flag1 && flag2)
-		{
-			switch ((int)flag1->cnt)
-			{
-				case FLAG_AT_BASE:
-					r_f = " ";
-					break;
-
-				case FLAG_CARRIED:
-					r_f = "R";
-					break;
-
-				case FLAG_DROPPED:
-					r_f = "\322";
-					break;
-
-				default:
-					r_f = " ";
-			}
-
-			switch ((int)flag2->cnt)
-			{
-				case FLAG_AT_BASE:
-					b_f = " ";
-					break;
-
-				case FLAG_CARRIED:
-					b_f = "B";
-					break;
-
-				case FLAG_DROPPED:
-					b_f = "\302";
-					break;
-
-				default:
-					b_f = " ";
-			}
-
-			if (e->ctf_flag & CTF_RUNE_RES)
-			{
-				rune = "res";
-			}
-			else if (e->ctf_flag & CTF_RUNE_STR)
-			{
-				rune = "str";
-			}
-			else if (e->ctf_flag & CTF_RUNE_HST)
-			{
-				rune = "hst";
-			}
-			else if (e->ctf_flag & CTF_RUNE_RGN)
-			{
-				rune = "rgn";
-			}
-			else
-			{
-				rune = "   ";
-			}
-
-			strlcat(buf, va("%s \205%s\205%s\205 ", rune, r_f, b_f), sizeof(buf));
-		}
-	}
 
 	if (k_sudden_death)
 	{
@@ -3206,11 +3000,7 @@ void Print_Scores(void)
 
 	if (sc_ok)
 	{
-		if (isCTF())
-		{
-			strlcat(buf, last_va = va("  \x90%d\x91", ts - es), sizeof(buf));
-		}
-		else
+		if (true)
 		{
 			if ((current_umode < um2on2on2) || (current_umode > um4on4on4))
 			{
@@ -3251,7 +3041,7 @@ void Print_Scores(void)
 	}
 
 	// add spaces, so line in most cases is don't move from side to side during frags changes
-	if ((i = (isCTF() ? sizeof("  [-zzzzz]") - 1 : sizeof("  t:xxxxx  e:yyyyy  [-zzzzz]") - 1)
+	if ((i = (sizeof("  t:xxxxx  e:yyyyy  [-zzzzz]") - 1)
 			- strlen(last_va)) > 0)
 	{
 		int offset = strlen(buf);
@@ -3427,13 +3217,13 @@ void PlayerPreThink(void)
 	}
 
 	if (self->sc_stats && self->sc_stats_time && (self->sc_stats_time <= g_globalvars.time)
-			&& (match_in_progress != 1) && !isRACE())
+			&& (match_in_progress != 1))
 	{
 		Print_Scores();
 	}
 
 	if (self->wp_stats && self->wp_stats_time && (self->wp_stats_time <= g_globalvars.time)
-			&& (match_in_progress != 1) && !isRACE())
+			&& (match_in_progress != 1))
 	{
 		Print_Wp_Stats();
 	}
@@ -3641,8 +3431,6 @@ void PlayerPreThink(void)
 
 	}
 
-	race_player_pre_think();
-
 // brokenankle included here
 	if (self->s.v.button2 || self->brokenankle)
 	{
@@ -3660,54 +3448,10 @@ void PlayerPreThink(void)
 	}
 
 	if ((g_globalvars.time > self->attack_finished) && (self->s.v.currentammo == 0)
-			&& (self->s.v.weapon != IT_AXE) && (self->s.v.weapon != IT_HOOK))
+			&& (self->s.v.weapon != IT_AXE))
 	{
 		self->s.v.weapon = W_BestWeapon();
 		W_SetCurrentAmmo();
-	}
-
-	// CTF
-	if (self->on_hook)
-	{
-		GrappleService();
-	}
-
-	if (self->ctf_flag & CTF_RUNE_RGN)
-	{
-		if (self->regen_time < g_globalvars.time)
-		{
-			self->regen_time = g_globalvars.time;
-
-			if (self->s.v.health < 150)
-			{
-				self->s.v.health += 5;
-				if (self->s.v.health > 150)
-				{
-					self->s.v.health = 150;
-				}
-
-				self->regen_time += 1 / ((cvar("k_ctf_rune_power_rgn") / 2) + 1);
-#ifdef BOT_SUPPORT
-				FrogbotSetHealthArmour(self);
-#endif
-				RegenerationSound(self);
-			}
-
-			if (self->s.v.armorvalue < 150 && self->s.v.armorvalue > 0)
-			{
-				self->s.v.armorvalue += 5;
-				if (self->s.v.armorvalue > 150)
-				{
-					self->s.v.armorvalue = 150;
-				}
-
-				self->regen_time += 0.5;
-#ifdef BOT_SUPPORT
-				FrogbotSetHealthArmour(self);
-#endif
-				RegenerationSound(self);
-			}
-		}
 	}
 
 	VectorCopy(self->s.v.velocity, self->old_vel);
@@ -3934,11 +3678,6 @@ void CheckLightEffects(void)
 			& ~(EF_DIMLIGHT | EF_BRIGHTLIGHT | EF_BLUE | EF_RED | EF_GREEN);
 
 	// well, EF_xxx may originate from different sources, check it all
-	if (self->ctf_flag & CTF_FLAG)
-	{
-		dim = true;
-	}
-
 	if ((self->invincible_finished > g_globalvars.time) && (deathmatch != 4))
 	{
 		r = true;
@@ -3948,9 +3687,6 @@ void CheckLightEffects(void)
 	{
 		g = true;
 	}
-
-	//if ( self->racer && race.status && !match_in_progress )
-	//	g = true; // RACE (disabled with multi-racing)
 
 	if (k_bloodfest && ISLIVE(self))
 	{
@@ -3962,8 +3698,7 @@ void CheckLightEffects(void)
 		b = true;
 	}
 
-	if (!match_in_progress && !match_over && !k_matchLess && !self->ready && cvar("k_sready")
-			&& !isRACE())
+	if (!match_in_progress && !match_over && !k_matchLess && !self->ready && cvar("k_sready"))
 	{
 		b = true;
 	}
@@ -4034,7 +3769,6 @@ void BothPostThink(void)
 
 void W_WeaponFrame(void);
 void mv_record(void);
-void CheckStuffRune(void);
 
 // ====================================
 // { new weapon stats WS_
@@ -4255,8 +3989,6 @@ void PlayerPostThink(void)
 
 	CheckPowerups();
 	CheckLightEffects(); // NOTE: guess, this must be after CheckPowerups(), so u r warned.
-	CheckStuffRune();
-	CTF_CheckFlagsAsKeys();
 
 	mv_record();
 
@@ -4268,8 +4000,6 @@ void PlayerPostThink(void)
 #endif
 
 	W_WeaponFrame();
-
-	race_player_post_think();
 
 	{
 		float velocity = sqrt(
@@ -4385,14 +4115,9 @@ void CheckTeamStatus(void)
 	gedict_t *p;
 	int k_teamoverlay;
 
-	if (!isTeam() && !isCTF() && !coop)
+	if (!isTeam() && !coop)
 	{
 		return; // non team game
-	}
-
-	if (isRACE())
-	{
-		return; // could advance in the future by working out ongoing positions and sending those?
 	}
 
 	if ((g_globalvars.time - lastTeamLocationTime) < TEAM_LOCATION_UPDATE_TIME)
@@ -4636,7 +4361,7 @@ void StatsHandler(gedict_t *targ, gedict_t *attacker)
 		{
 			targ->ps.wpn[wp].suicides++;
 		}
-		else if ((isTeam() || isCTF()) && streq(targteam, attackerteam) && !strnull(attackerteam))
+		else if ((isTeam()) && streq(targteam, attackerteam) && !strnull(attackerteam))
 		{
 			// team kill
 			attacker->ps.wpn[wp].tkills++;
@@ -4874,7 +4599,7 @@ void ClientObituary(gedict_t *targ, gedict_t *attacker)
 	}
 
 	targ->deaths += 1; // somehow dead, bump counter
-	if ((isTeam() || isCTF()) && streq(targteam, attackerteam) && !strnull(attackerteam)
+	if ((isTeam()) && streq(targteam, attackerteam) && !strnull(attackerteam)
 			&& (targ != attacker))
 	{
 		attacker->friendly += 1; // bump teamkills counter
@@ -5007,7 +4732,7 @@ void ClientObituary(gedict_t *targ, gedict_t *attacker)
 
 			return;
 		}
-		else if (((isTeam() || isCTF()) && streq(targteam, attackerteam) && !strnull(attackerteam))
+		else if (((isTeam()) && streq(targteam, attackerteam) && !strnull(attackerteam))
 				|| coop)
 		{
 			// teamkill
@@ -5093,11 +4818,6 @@ void ClientObituary(gedict_t *targ, gedict_t *attacker)
 			if ((targ->spawn_time + 2) > g_globalvars.time)
 			{
 				attacker->ps.spawn_frags++;
-			}
-
-			if (isCTF()) // handle various ctf bonuses
-			{
-				CTF_Obituary(targ, attacker);
 			}
 
 			deathstring2 = "\n"; // default is "\n"

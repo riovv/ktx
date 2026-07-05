@@ -136,20 +136,8 @@ field_t fields[] =
 
 	{ "t_length",					FOFS(t_length), 					F_FLOAT },
 	{ "t_width",					FOFS(t_width), 						F_FLOAT },
-// TF
-	{ "team_no", 					FOFS(team_no), 						F_INT },
 // custom teleporters
 	{ "size", 						FOFS(s.v.size), 					F_VECTOR },
-// race routes
-	{ "race_route_name", 			FOFS(race_route_name), 				F_LSTRING },
-	{ "race_route_description", 	FOFS(race_route_description), 		F_LSTRING },
-	{ "race_route_timeout", 		FOFS(race_route_timeout), 			F_INT },
-	{ "race_route_weapon_mode", 	FOFS(race_route_weapon_mode), 		F_INT },
-	{ "race_route_falsestart_mode", FOFS(race_route_falsestart_mode), 	F_INT },
-	{ "race_route_start_yaw", 		FOFS(race_route_start_yaw), 		F_FLOAT },
-	{ "race_route_start_pitch", 	FOFS(race_route_start_yaw), 		F_FLOAT },
-	{ "race_flags", 				FOFS(race_flags), 					F_INT },
-
 // spawn points determine how the player spawns
 	{ "spawn_items", 				FOFS(s.v.items), 					F_FLOAT },
 	{ "spawn_armorvalue", 			FOFS(s.v.armorvalue), 				F_FLOAT },
@@ -242,7 +230,6 @@ void SP_air_bubbles(void);
 void SP_trap_spikeshooter(void);
 void SP_trap_shooter(void);
 void SP_func_wall(void);
-void SP_func_ctf_wall(void);
 void SP_func_illusionary(void);
 void SP_func_episodegate(void);
 void SP_func_bossgate(void);
@@ -295,8 +282,6 @@ void SP_item_artifact_invulnerability(void);
 void SP_item_artifact_envirosuit(void);
 void SP_item_artifact_invisibility(void);
 void SP_item_artifact_super_damage(void);
-void SP_item_flag_team1(void);
-void SP_item_flag_team2(void);
 void SP_item_sigil(void);
 void SP_item_key1(void);
 void SP_item_key2(void);
@@ -324,13 +309,6 @@ void SP_event_lightning(void);
 
 void SP_info_monster_start(void);
 
-// TF
-void SP_item_tfgoal(void);
-void SP_info_player_teamspawn(void);
-void SP_i_p_t(void);
-
-// Races
-void SP_race_route_start(void);
 
 // Rotate
 
@@ -436,25 +414,20 @@ spawn_t spawns[] =
 	{ "item_key1", 						SP_item_key1 },
 	{ "item_key2", 						SP_item_key2 },
 
-// ctf ents
-	{ "item_flag_team1", 				SP_item_flag_team1 },
-	{ "item_flag_team2", 				SP_item_flag_team2 },
+	{ "item_flag_team1", 				SUB_Null },
+	{ "item_flag_team2", 				SUB_Null },
 	{ "item_rune_res", 					SUB_Null },
 	{ "item_rune_str", 					SUB_Null },
 	{ "item_rune_hst", 					SUB_Null },
 	{ "item_rune_rgn", 					SUB_Null },
-	{ "func_ctf_wall", 					SP_func_ctf_wall },
+	{ "func_ctf_wall", 					SUB_Null },
 	{ "info_player_team1", 				SUB_Null },
 	{ "info_player_team2", 				SUB_Null },
-// k_ctf_based_spawn 2 "within home base" spawns.
 	{ "info_player_team1_deathmatch", 	SUB_Null },
 	{ "info_player_team2_deathmatch", 	SUB_Null },
-//
-// TF -- well, we does not support TF but require it for loading TF map as CTF map.
-//
-	{ "item_tfgoal", 					SP_item_tfgoal }, // FLAG
-	{ "info_player_teamspawn", 			SP_info_player_teamspawn }, // red/blue team player spawns.
-	{ "i_p_t", 							SP_i_p_t }, // same as "info_player_teamspawn".
+	{ "item_tfgoal", 					SUB_Null },
+	{ "info_player_teamspawn", 			SUB_Null },
+	{ "i_p_t", 							SUB_Null },
 
 //not used ents
 /*QUAKED info_null (0 0.5 0) (-4 -4 -4) (4 4 4)
@@ -479,11 +452,6 @@ spawn_t spawns[] =
 	{ "event_lightning", 				SP_event_lightning },
 
 	{ "info_monster_start", 			SP_info_monster_start },
-
-// race routes
-	{ "race_route_start", 				SP_race_route_start },
-	{ "race_route_marker", 				SUB_Null },
-
 
 	{ "trigger_heal", SP_trigger_heal },
 
@@ -835,5 +803,4 @@ void G_SpawnEntitiesFromString(void)
 		trap_FlushSignon();
 	}
 
-	race_add_standard_routes();
 }

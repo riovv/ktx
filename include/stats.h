@@ -14,15 +14,6 @@ typedef struct teamStats_s
 	float dmg_g;
 	float dmg_team;
 	float dmg_eweapon;
-	float res;
-	float str;
-	float rgn;
-	float hst;
-	int caps;
-	int pickups;
-	int returns;
-	int f_defends;
-	int c_defends;
 	wpType_t wpn[wpMAX];
 	itType_t itm[itMAX];
 	int transferred_RLpacks;
@@ -46,8 +37,6 @@ typedef struct stats_format_s
 	void (*players_header)(fileHandle_t handle);
 	void (*player_detail)(fileHandle_t handle, int num, gedict_t *plr, const char *team);
 	void (*players_footer)(fileHandle_t handle, int players);
-
-	void (*race_detail)(fileHandle_t handle);
 } stats_format_t;
 
 #define FILE_FORMAT_DECL(x) \
@@ -58,8 +47,7 @@ void x##_team_detail(fileHandle_t handle, int num, teamStats_t* stats); \
 void x##_teams_footer(fileHandle_t handle, int team_count); \
 void x##_players_header(fileHandle_t handle); \
 void x##_player_detail(fileHandle_t handle, int num, gedict_t* plr, const char* team); \
-void x##_players_footer(fileHandle_t handle, int players); \
-void x##_race_detail(fileHandle_t handle);
+void x##_players_footer(fileHandle_t handle, int players);
 
 #define FILE_FORMAT_DEF(x) { \
 	#x, \
@@ -70,8 +58,7 @@ void x##_race_detail(fileHandle_t handle);
 	x##_teams_footer, \
 	x##_players_header, \
 	x##_player_detail, \
-	x##_players_footer, \
-	x##_race_detail \
+	x##_players_footer \
 }
 
 const char* GetMode(void);

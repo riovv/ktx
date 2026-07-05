@@ -790,10 +790,6 @@ void fd_secret_use(gedict_t *attacker, float take)
 	//activator=attacker;
 	SUB_UseTargets();	// fire all targets / killtargets
 
-	if (isCTF() && ((int)(self->s.v.spawnflags) & SECRET_NEVER))
-	{
-		return; // it never opens
-	}
 
 	if (!((int)(self->s.v.spawnflags) & SECRET_NO_SHOOT))
 	{

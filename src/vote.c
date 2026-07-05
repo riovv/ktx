@@ -241,12 +241,6 @@ int get_votes_req(int fofs, qbool diff)
 			percent = cvar("k_vp_coop");
 			break;
 
-		case OV_HOOKSMOOTH:
-		case OV_HOOKFAST:
-		case OV_HOOKCLASSIC:
-			percent = cvar("k_vp_hookstyle");
-			break;
-
 		case OV_ANTILAG:
 			percent = cvar("k_vp_antilag");
 			break;
@@ -258,14 +252,7 @@ int get_votes_req(int fofs, qbool diff)
 
 	percent = bound(0.51, bound(51, percent, 100) / 100, 1); // calc and bound percentage between 50% to 100%
 
-	if (isRACE() && (fofs == OV_MAP))
-	{
-		vt_req = race_count_votes_req(percent);
-	}
-	else
-	{
-		vt_req = ceil(percent * (CountPlayers() - CountBots()));
-	}
+	vt_req = ceil(percent * (CountPlayers() - CountBots()));
 
 	if (fofs == OV_ELECT)
 	{
@@ -296,18 +283,6 @@ int get_votes_req(int fofs, qbool diff)
 		vt_req = max(2, vt_req); // at least 2 votes in this case
 	}
 	else if (fofs == OV_COOP)
-	{
-		vt_req = max(1, vt_req); // at least 1 votes in this case
-	}
-	else if (fofs == OV_HOOKSMOOTH)
-	{
-		vt_req = max(1, vt_req); // at least 1 votes in this case
-	}
-	else if (fofs == OV_HOOKFAST)
-	{
-		vt_req = max(1, vt_req); // at least 1 votes in this case
-	}
-	else if (fofs == OV_HOOKCLASSIC)
 	{
 		vt_req = max(1, vt_req); // at least 1 votes in this case
 	}
@@ -437,11 +412,6 @@ int vote_get_maps(void)
 		if (!p->v.map)
 		{
 			continue; // player is not voted
-		}
-
-		if (!race_allow_map_vote(p))
-		{
-			continue;
 		}
 
 		for (i = 0; i < MAX_CLIENTS; i++)
@@ -1038,184 +1008,6 @@ void votecoop(void)
 			((votes = get_votes_req(OV_COOP, true)) ? va(" (%d)", votes) : ""));
 
 	vote_check_coop();
-}
-
-// }
-
-// { votehook
-void hooksmooth(void)
-{
-	int votes, veto;
-
-	if (match_in_progress)
-	{
-		G_sprint(self, 2, "hook style can not be changed while match is in progress\n");
-
-		return;
-	}
-
-	if (!isCTF())
-	{
-		G_sprint(self, 2, "hook style can only be set in CTF mode\n");
-
-		return;
-	}
-	if (intermission_running || match_over)
-	{
-		return;
-	}
-
-	self->v.hooksmooth = !self->v.hooksmooth;
-
-	G_bprint(
-			2,
-			"%s %s!%s\n",
-			self->netname,
-			(self->v.hooksmooth ?
-					redtext("votes for smooth hook") :
-					redtext(va("withdraws %s hookstyle vote", g_his(self)))),
-			((votes = get_votes_req(OV_HOOKSMOOTH, true)) ? va(" (%d)", votes) : ""));
-
-	veto = is_admins_vote(OV_HOOKSMOOTH);
-
-  if (veto || !get_votes_req(OV_HOOKSMOOTH, true))
-	{
-		cvar_fset("k_ctf_hookstyle", 1);
-		G_bprint(2, "%s\n", redtext(va("hook style set to smooth by %s", veto ? "admin veto" : "majority vote")));
-		vote_clear(OV_HOOKSMOOTH);
-	}
-}
-
-void hookfast(void)
-{
-	int votes, veto;
-	
-	if (match_in_progress)
-	{
-		G_sprint(self, 2, "hookstyle can not be changed while match is in progress\n");
-
-		return;
-	}
-
-	if (!isCTF())
-	{
-		G_sprint(self, 2, "hookstyle can only be set in CTF mode\n");
-
-		return;
-	}
-	if (intermission_running || match_over)
-	{
-		return;
-	}
-
-
-	self->v.hookfast = !self->v.hookfast;
-
-	G_bprint(
-			2,
-			"%s %s!%s\n",
-			self->netname,
-			(self->v.hookfast ?
-					redtext("votes for fast hook") :
-					redtext(va("withdraws %s hookstyle vote", g_his(self)))),
-			((votes = get_votes_req(OV_HOOKFAST, true)) ? va(" (%d)", votes) : ""));
-
-	veto = is_admins_vote(OV_HOOKFAST);
-
-  if (veto || !get_votes_req(OV_HOOKFAST, true))
-	{
-		cvar_fset("k_ctf_hookstyle", 2);
-		G_bprint(2, "%s\n", redtext(va("hook style set to fast by %s", veto ? "admin veto" : "majority vote")));
-		vote_clear(OV_HOOKFAST);
-	}
-}
-
-void hookclassic(void)
-{
-	int votes, veto;
-	
-	if (match_in_progress)
-	{
-		G_sprint(self, 2, "hook style can not be changed while match is in progress\n");
-
-		return;
-	}
-
-	if (!isCTF())
-	{
-		G_sprint(self, 2, "hook style can only be set in CTF mode\n");
-
-		return;
-	}
-	if (intermission_running || match_over)
-	{
-		return;
-	}
-
-	self->v.hookclassic = !self->v.hookclassic;
-
-	G_bprint(
-			2,
-			"%s %s!%s\n",
-			self->netname,
-			(self->v.hookclassic ?
-					redtext("votes for classic hook") :
-					redtext(va("withdraws %s hookstyle vote", g_his(self)))),
-			((votes = get_votes_req(OV_HOOKCLASSIC, true)) ? va(" (%d)", votes) : ""));
-
-	veto = is_admins_vote(OV_HOOKCLASSIC);
-
-  if (veto || !get_votes_req(OV_HOOKCLASSIC, true))
-	{
-		cvar_fset("k_ctf_hookstyle", 3);
-		G_bprint(2, "%s\n", redtext(va("hook style set to classic by %s", veto ? "admin veto" : "majority vote")));
-		vote_clear(OV_HOOKCLASSIC);
-		return;
-	}
-}
-
-void hookcrhook(void)
-{
-	int votes, veto;
-
-	if (match_in_progress)
-	{
-		G_sprint(self, 2, "hook style can not be changed while match is in progress\n");
-
-		return;
-	}
-
-	if (!isCTF())
-	{
-		G_sprint(self, 2, "hook style can only be set in CTF mode\n");
-
-		return;
-	}
-	if (intermission_running || match_over)
-	{
-		return;
-	}
-
-	self->v.hookcrhook = !self->v.hookcrhook;
-
-	G_bprint(
-		2,
-		"%s %s!%s\n",
-		self->netname,
-		(self->v.hookcrhook ?
-			redtext("votes for crhook") :
-			redtext(va("withdraws %s hookstyle vote", g_his(self)))),
-		((votes = get_votes_req(OV_HOOKCRHOOK, true)) ? va(" (%d)", votes) : ""));
-
-	veto = is_admins_vote(OV_HOOKCRHOOK);
-
-	if (veto || !get_votes_req(OV_HOOKCRHOOK, true))
-	{
-		cvar_fset("k_ctf_hookstyle", 4);
-		G_bprint(2, "%s\n", redtext(va("hook style set to crhook by %s", veto ? "admin veto" : "majority vote")));
-		vote_clear(OV_HOOKCRHOOK);
-		return;
-	}
 }
 
 // }

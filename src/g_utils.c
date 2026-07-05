@@ -26,8 +26,6 @@
 #include "g_local.h"
 
 void Sc_Stats(float on);
-void race_stoprecord(qbool cancel);
-
 void BotsSoundMadeEvent(gedict_t *entity);
 
 int NUM_FOR_EDICT(gedict_t *e)
@@ -919,9 +917,6 @@ void sound(gedict_t *ed, int channel, char *samp, float vol, float att)
 	if (!samp || !*samp)
 		return; // ignore null sample
 
-	if (isRACE() && ed->muted)
-		return;
-
 #ifdef BOT_SUPPORT
 	if (bots_enabled())
 	{
@@ -1585,7 +1580,7 @@ qbool isTeam(void)
 
 int tp_num(void)
 {
-	return ((isTeam() || isCTF() || coop) ? teamplay : 0);
+	return ((isTeam() || coop) ? teamplay : 0);
 }
 
 qbool isFFA(void)
@@ -1593,27 +1588,9 @@ qbool isFFA(void)
 	return ((k_mode == gtFFA) ? true : false);
 }
 
-qbool isCTF(void)
-{
-#ifdef CTF_RELOADMAP
-	return k_ctf; // once setup at map load
-#else
-	return ((k_mode == gtCTF) ? true : false);
-#endif
-}
-
 qbool isUnknown(void)
 {
-#ifdef CTF_RELOADMAP
-	if (cvar("k_mode") == gtCTF)
-	{
-		return false; // zzzz, hack, let FixRules work less or more correctly
-	}
-
-	return ((!isDuel() && !isTeam() && !isFFA() && !isCTF()) ? true : false);
-#else
-	return ((!isDuel() && !isTeam() && !isFFA() && !isCTF()) ? true : false);
-#endif
+	return ((!isDuel() && !isTeam() && !isFFA()) ? true : false);
 }
 
 // <<< gametype
@@ -1706,11 +1683,6 @@ void changelevel(const char *name)
 	if (strnull(name))
 	{
 		G_Error("changelevel: null");
-	}
-
-	if (isRACE() && race.race_recording)
-	{
-		race_stoprecord(true);
 	}
 
 	entityFileSep = strchr(name, K_ENTITYFILE_SEPARATOR);
@@ -2009,13 +1981,6 @@ void CalculateBestPlayers(void)
 	ed_best1 = NULL;
 	ed_best2 = NULL;
 
-	if (isRACE())
-	{
-		ed_best1 = race_get_racer();
-
-		return;
-	}
-
 	// autotrack stuff
 	// no ghost serving
 	for (p = world; (p = find_plr(p));)
@@ -2082,13 +2047,6 @@ void CalculateBestPowPlayers(void)
 
 	best1 = 0;
 	ed_bestPow = NULL;
-
-	if (isRACE())
-	{
-		ed_bestPow = race_get_racer();
-
-		return;
-	}
 
 	// auto_pow stuff
 	// no ghost serving
@@ -2372,18 +2330,9 @@ void on_connect(void)
 		{
 			stuffcmd_flags(self, STUFFCMD_IGNOREINDEMO, "on_connect_ffa\n");
 		}
-		else if (isCTF())
-		{
-			stuffcmd_flags(self, STUFFCMD_IGNOREINDEMO, "on_connect_ctf\n");
-		}
 		else
 		{
 			stuffcmd_flags(self, STUFFCMD_IGNOREINDEMO, "on_connect\n");
-		}
-
-		if (isCTF() && (streq(newteam = getteam(self), "red") || streq(newteam, "blue")))
-		{
-			stuffcmd_flags(self, STUFFCMD_IGNOREINDEMO, "auto%s\n", newteam);
 		}
 	}
 	else
@@ -2391,10 +2340,6 @@ void on_connect(void)
 		if (isFFA())
 		{
 			stuffcmd_flags(self, STUFFCMD_IGNOREINDEMO, "on_observe_ffa\n");
-		}
-		else if (isCTF())
-		{
-			stuffcmd_flags(self, STUFFCMD_IGNOREINDEMO, "on_observe_ctf\n");
 		}
 		else
 		{
@@ -2416,10 +2361,6 @@ void on_enter(void)
 		{
 			stuffcmd_flags(self, STUFFCMD_IGNOREINDEMO, "on_enter_ffa\n");
 		}
-		else if (isCTF())
-		{
-			stuffcmd_flags(self, STUFFCMD_IGNOREINDEMO, "on_enter_ctf\n");
-		}
 		else
 		{
 			stuffcmd_flags(self, STUFFCMD_IGNOREINDEMO, "on_enter\n");
@@ -2430,10 +2371,6 @@ void on_enter(void)
 		if (isFFA())
 		{
 			stuffcmd_flags(self, STUFFCMD_IGNOREINDEMO, "on_spec_enter_ffa\n");
-		}
-		else if (isCTF())
-		{
-			stuffcmd_flags(self, STUFFCMD_IGNOREINDEMO, "on_spec_enter_ctf\n");
 		}
 		else
 		{
@@ -2710,8 +2647,8 @@ int get_fair_pack(void)
 
 int get_fallbunny(void)
 {
-	// Yawnmode/race: no broken ankle
-	return (k_yawnmode || isRACE() ? 1 : cvar("k_fallbunny"));
+	// Yawnmode: no broken ankle
+	return (k_yawnmode ? 1 : cvar("k_fallbunny"));
 }
 
 //======================================

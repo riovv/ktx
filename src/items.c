@@ -384,10 +384,7 @@ void item_megahealth_rot(void)
 
 	if (other->s.v.health > other->s.v.max_health && !FrogbotItemPickupBonus())
 	{
-		if (!(other->ctf_flag & CTF_RUNE_RGN))
-		{
-			other->s.v.health -= 1;
-		}
+		other->s.v.health -= 1;
 
 		self->s.v.nextthink = g_globalvars.time + 1;
 #ifdef BOT_SUPPORT
@@ -739,11 +736,6 @@ float WeaponCode(float w)
 void Deathmatch_Weapon(int new)
 {
 	int or, nr;
-
-	if ((self->s.v.weapon == IT_HOOK) && self->s.v.button0)
-	{
-		return;
-	}
 
 // change self.weapon if desired
 	or = RankForWeapon(self->s.v.weapon);
@@ -2985,11 +2977,6 @@ void ShowSpawnPoints(void)
 {
 	Spawn_SpawnPoints("info_player_deathmatch", cvar("k_spm_glow") ? ( EF_GREEN | EF_RED) : 0);
 
-	if (isCTF())
-	{
-		Spawn_SpawnPoints("info_player_team1", cvar("k_spm_glow") ? EF_RED : 0);
-		Spawn_SpawnPoints("info_player_team2", cvar("k_spm_glow") ? EF_BLUE : 0);
-	}
 }
 
 void HideSpawnPoints(void)

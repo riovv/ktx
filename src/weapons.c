@@ -105,13 +105,6 @@ void W_FireAxe(void)
 	{
 		int damage = 20; // default damage is 20
 
-		// can't touch/damage others in race
-		if (isRACE() && (PROG_TO_EDICT(g_globalvars.trace_ent)->ct == ctPlayer)
-				&& (self != PROG_TO_EDICT(g_globalvars.trace_ent)))
-		{
-			return;
-		}
-
 		if (PROG_TO_EDICT(g_globalvars.trace_ent)->ct == ctPlayer)
 		{
 			WS_Mark(self, wpAXE);
@@ -365,13 +358,6 @@ void TraceAttack(float damage, vec3_t dir, qbool send_effects)
 	VectorScale(dir, 4, tmp);
 	VectorSubtract(g_globalvars.trace_endpos, tmp, org);
 // org = trace_endpos - dir*4;
-
-	// can't touch/damage others in race
-	if (isRACE() && (PROG_TO_EDICT(g_globalvars.trace_ent)->ct == ctPlayer)
-			&& (self != PROG_TO_EDICT(g_globalvars.trace_ent)))
-	{
-		return;
-	}
 
 	if (PROG_TO_EDICT(g_globalvars.trace_ent)->s.v.takedamage)
 	{
@@ -950,12 +936,6 @@ void T_MissileTouch(void)
 		return;		// don't explode on owner
 	}
 
-	// race rockets can only hit the world
-	if (isRACE() && (other->s.v.solid != SOLID_BSP))
-	{
-		return;
-	}
-
 	if (self->voided)
 	{
 		return;
@@ -1047,7 +1027,7 @@ void W_FireRocket(void)
 	newmis->s.v.owner = EDICT_TO_PROG(self);
 	newmis->s.v.movetype = MOVETYPE_FLYMISSILE;
 	newmis->isMissile = true;
-	newmis->s.v.solid = (isRACE() ? SOLID_TRIGGER : SOLID_BBOX);
+	newmis->s.v.solid = SOLID_BBOX;
 
 	// set newmis speed
 	trap_makevectors(self->s.v.v_angle);
@@ -1313,12 +1293,6 @@ void GrenadeTouch(void)
 		return;		// don't explode on owner
 	}
 
-	// can't touch/damage others in race
-	if (isRACE() && (other->ct == ctPlayer) && (other != PROG_TO_EDICT(self->s.v.owner)))
-	{
-		return;
-	}
-
 	if (other->s.v.takedamage)
 	{
 		if (other->ct == ctPlayer)
@@ -1449,7 +1423,7 @@ void launch_spike(vec3_t org, vec3_t dir)
 	newmis->s.v.owner = EDICT_TO_PROG(self);
 	newmis->s.v.movetype = MOVETYPE_FLYMISSILE;
 	newmis->isMissile = true;
-	newmis->s.v.solid = (isRACE() ? SOLID_TRIGGER : SOLID_BBOX);
+	newmis->s.v.solid = SOLID_BBOX;
 
 	newmis->touch = (func_t) spike_touch;
 	newmis->classname = "spike";
@@ -1466,38 +1440,9 @@ void launch_spike(vec3_t org, vec3_t dir)
 	vectoangles(newmis->s.v.velocity, newmis->s.v.angles);
 }
 
-static qbool race_ignore_spike(gedict_t *self, gedict_t *other)
-{
-	// we're not racing, treat as normal
-	if (!isRACE())
-	{
-		return false;
-	}
-
-	// everything collides with walls
-	if (other == world)
-	{
-		return false;
-	}
-
-	// they only collide with players
-	if (other->ct != ctPlayer)
-	{
-		return true;
-	}
-
-	// player fired it?  ignore
-	return PROG_TO_EDICT(self->s.v.owner)->ct == ctPlayer;
-}
-
 void spike_touch(void)
 {
 	if (other == PROG_TO_EDICT(self->s.v.owner))
-	{
-		return;
-	}
-
-	if (race_ignore_spike(self, other))
 	{
 		return;
 	}
@@ -1566,11 +1511,6 @@ void spike_touch(void)
 void superspike_touch(void)
 {
 	if (other == PROG_TO_EDICT(self->s.v.owner))
-	{
-		return;
-	}
-
-	if (race_ignore_spike(self, other))
 	{
 		return;
 	}
@@ -1729,7 +1669,7 @@ void W_SetCurrentAmmo(void)
 
 	if ((self->think == (func_t)player_stand1) || (self->think == (func_t)player_run))
 	{
-		if ((self->s.v.weapon == IT_AXE) || (self->s.v.weapon == IT_HOOK))
+		if (self->s.v.weapon == IT_AXE)
 		{
 			if (self->s.v.velocity[0] || self->s.v.velocity[1])
 			{
@@ -1895,25 +1835,6 @@ void W_SetCurrentAmmo(void)
 
 			break;
 
-		case IT_HOOK:
-			self->s.v.currentammo = 0;
-			if (k_ctf_custom_models)
-			{
-				self->weaponmodel = "progs/v_star.mdl";
-			}
-			else
-			{
-				self->weaponmodel = "progs/v_axe.mdl";
-			}
-
-			self->s.v.weaponframe = 0;
-			if (vw_enabled)
-			{
-				self->vw_index = 1;
-			}
-
-			break;
-
 		default:
 			self->s.v.currentammo = 0;
 			self->weaponmodel = "";
@@ -2044,7 +1965,7 @@ int W_CheckNoAmmo(void)
 		return true;
 	}
 
-	if ((self->s.v.weapon == IT_AXE) || (self->s.v.weapon == IT_HOOK))
+	if (self->s.v.weapon == IT_AXE)
 	{
 		return true;
 	}
@@ -2081,16 +2002,7 @@ void W_Attack(void)
 	switch ((int)self->s.v.weapon)
 	{
 		case IT_AXE:
-			if (self->ctf_flag & CTF_RUNE_HST)
-			{
-				self->attack_finished = g_globalvars.time + 0.5
-						- (cvar("k_ctf_rune_power_hst") / 10);
-				HasteSound(self);
-			}
-			else
-			{
-				self->attack_finished = g_globalvars.time + 0.5;
-			}
+			self->attack_finished = g_globalvars.time + 0.5;
 
 			// crt - no axe sound for spec
 			sound(self, CHAN_WEAPON, "weapons/ax1.wav", 1, ATTN_NORM);
@@ -2117,44 +2029,24 @@ void W_Attack(void)
 
 		case IT_SHOTGUN:
 			player_shot1();
-			if (self->ctf_flag & CTF_RUNE_HST)
+			if (cvar("k_instagib") == 1)
 			{
-				self->attack_finished = g_globalvars.time + 0.5
-						- (cvar("k_ctf_rune_power_hst") / 10);
-				HasteSound(self);
+				self->attack_finished = g_globalvars.time + 1.2;
+			}
+			else if (cvar("k_instagib") == 2)
+			{
+				self->attack_finished = g_globalvars.time + 0.7;
 			}
 			else
 			{
-				if (cvar("k_instagib") == 1)
-				{
-					self->attack_finished = g_globalvars.time + 1.2;
-				}
-				else if (cvar("k_instagib") == 2)
-				{
-					self->attack_finished = g_globalvars.time + 0.7;
-				}
-				else
-				{
-					self->attack_finished = g_globalvars.time + 0.5;
-				}
+				self->attack_finished = g_globalvars.time + 0.5;
 			}
-
 			W_FireShotgun();
 			break;
 
 		case IT_SUPER_SHOTGUN:
 			player_shot1();
-			if (self->ctf_flag & CTF_RUNE_HST)
-			{
-				self->attack_finished = g_globalvars.time + 0.5
-						- (cvar("k_ctf_rune_power_hst") / 20);
-				HasteSound(self);
-			}
-			else
-			{
-				self->attack_finished = g_globalvars.time + (k_yawnmode ? 0.8 : 0.7);
-			}
-
+			self->attack_finished = g_globalvars.time + (k_yawnmode ? 0.8 : 0.7);
 			W_FireSuperShotgun();
 			break;
 
@@ -2170,33 +2062,13 @@ void W_Attack(void)
 
 		case IT_GRENADE_LAUNCHER:
 			player_rocket1();
-			if (self->ctf_flag & CTF_RUNE_HST)
-			{
-				self->attack_finished = g_globalvars.time + 0.5
-						- (cvar("k_ctf_rune_power_hst") / 10);
-				HasteSound(self);
-			}
-			else
-			{
-				self->attack_finished = g_globalvars.time + 0.6;
-			}
-
+			self->attack_finished = g_globalvars.time + 0.6;
 			W_FireGrenade();
 			break;
 
 		case IT_ROCKET_LAUNCHER:
 			player_rocket1();
-			if (self->ctf_flag & CTF_RUNE_HST)
-			{
-				self->attack_finished = g_globalvars.time + 0.5
-						- (cvar("k_ctf_rune_power_hst") / 20);
-				HasteSound(self);
-			}
-			else
-			{
-				self->attack_finished = g_globalvars.time + 0.8;
-			}
-
+			self->attack_finished = g_globalvars.time + 0.8;
 			W_FireRocket();
 			break;
 
@@ -2205,19 +2077,6 @@ void W_Attack(void)
 			sound(self, CHAN_AUTO, "weapons/lstart.wav", 1, ATTN_NORM);
 			self->s.v.ltime = g_globalvars.time;
 			player_light1();
-			break;
-
-		case IT_HOOK:
-			if (self->hook_out)
-			{
-				player_chain3();
-			}
-			else
-			{
-				player_chain1();
-			}
-
-			self->attack_finished = g_globalvars.time + 0.1;
 			break;
 	}
 }
@@ -2298,15 +2157,11 @@ qbool W_CanSwitch(int wp, qbool warn)
 
 			break;
 
-		case 22:
-			fl = IT_HOOK;
-			break;
-
 		default:
 			break;
 	}
 
-	if (!(it & fl) && !self->race_chasecam)
+	if (!(it & fl))
 	{
 		// don't have the weapon or the ammo
 		if (warn)
@@ -2317,7 +2172,7 @@ qbool W_CanSwitch(int wp, qbool warn)
 		return false;
 	}
 
-	if (am && !self->race_chasecam)
+	if (am)
 	{
 		// don't have the ammo
 		if (warn)
@@ -2352,16 +2207,7 @@ qbool W_ChangeWeapon(int wp)
 	switch (wp)
 	{
 		case 1:
-			// ctf shortcut for newbs: selecting axe when you already have it switches to grapple
-			if (isCTF() && (self->s.v.weapon == IT_AXE) && cvar("k_ctf_hook"))
-			{
-				fl = IT_HOOK;
-			}
-			else
-			{
-				fl = IT_AXE;
-			}
-
+			fl = IT_AXE;
 			break;
 
 		case 2:
@@ -2427,30 +2273,15 @@ qbool W_ChangeWeapon(int wp)
 
 			break;
 
-		case 22:
-			fl = IT_HOOK;
-			if (self->s.v.weapon != IT_HOOK)
-			{
-				if (self->hook_out)
-				{
-					GrappleReset(self->hook);
-				}
-
-				self->hook_out = false;
-				self->on_hook = false;
-			}
-
-			break;
-
 		default:
 			break;
 	}
 
-	if (!(it & fl) && !self->race_chasecam) // don't have the weapon
+	if (!(it & fl)) // don't have the weapon
 	{
 		G_sprint(self, PRINT_HIGH, "no weapon\n");
 	}
-	else if (am && !self->race_chasecam) // don't have the ammo
+	else if (am) // don't have the ammo
 	{
 		G_sprint(self, PRINT_HIGH, "not enough ammo\n");
 	}
@@ -2494,10 +2325,6 @@ qbool CycleWeaponCommand(void)
 				break;
 
 			case IT_AXE:
-				self->s.v.weapon = IT_HOOK;
-				break;
-
-			case IT_HOOK:
 				self->s.v.weapon = IT_SHOTGUN;
 				if (self->s.v.ammo_shells < 1)
 				{
@@ -2643,10 +2470,6 @@ qbool CycleWeaponReverseCommand(void)
 				break;
 
 			case IT_SHOTGUN:
-				self->s.v.weapon = IT_HOOK;
-				break;
-
-			case IT_HOOK:
 				self->s.v.weapon = IT_AXE;
 				break;
 
@@ -2859,29 +2682,7 @@ void W_WeaponFrame(void)
 		self->s.v.button0 = true;
 	}
 
-	if (isRACE())
-	{
-		if ((self->ct == ctPlayer) && !self->racer && race.status)
-		{
-			if (self->s.v.button0)
-			{
-				ChasecamToggleButton();
-			}
-			else
-			{
-				self->s.v.flags = ((int)(self->s.v.flags)) | FL_ATTACKRELEASED;
-			}
-
-			return;
-		}
-	}
-
 	ImpulseCommands();
-
-	if (!race_weapon_allowed(self))
-	{
-		return;
-	}
 
 	if (g_globalvars.time < self->attack_finished)
 	{
@@ -2917,23 +2718,7 @@ void SuperDamageSound(void)
 		if (self->super_sound < g_globalvars.time)
 		{
 			self->super_sound = g_globalvars.time + 1;
-			// Play 8x sound if quad + strength rune
-			if (self->ctf_flag & CTF_RUNE_STR)
-			{
-				sound(self, CHAN_AUTO, "rune/rune22.wav", 1, ATTN_NORM);
-			}
-			else
-			{
-				sound(self, CHAN_AUTO, "items/damage3.wav", 1, ATTN_NORM);
-			}
-		}
-	}
-	else if (self->ctf_flag & CTF_RUNE_STR)
-	{
-		if (self->super_sound < g_globalvars.time)
-		{
-			self->super_sound = g_globalvars.time + 1;
-			sound(self, CHAN_AUTO, "rune/rune2.wav", 1, ATTN_NORM);
+			sound(self, CHAN_AUTO, "items/damage3.wav", 1, ATTN_NORM);
 		}
 	}
 

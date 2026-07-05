@@ -244,7 +244,7 @@ void VoteCaptain(void)
 		return;
 	}
 
-	if (!isTeam() && !isCTF())
+	if (!isTeam())
 	{
 		G_sprint(self, 2, "No team picking in non team mode\n");
 
@@ -286,20 +286,6 @@ void VoteCaptain(void)
 		G_sprint(self, 2, "Set your team name first\n");
 
 		return;
-	}
-
-	// must be red or blue in ctf
-	if (isCTF())
-	{
-		if (!streq(getteam(self), "blue") && !streq(getteam(self), "red"))
-		{
-			G_sprint(self, 2, "Must be team red or blue for ctf\n");
-
-			return;
-		}
-
-		stuffcmd_flags(self, STUFFCMD_IGNOREINDEMO, "color %d\n",
-						(int)(streq(getteam(self), "blue") ? 13 : 4));
 	}
 
 	// search if a captain already has the same team

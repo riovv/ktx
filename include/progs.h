@@ -1,4 +1,4 @@
-/*
+﻿/*
  *  QWProgs-DM
  *  Copyright (C) 2004  [sd] angel
  *
@@ -24,9 +24,6 @@
  */
 
 #include "progdefs.h"
-
-#define MAX_ROUTE_NODES		20 // max race checkpoints per race (including start and finish checkpoints)
-#define MAX_ROUTES			20 // max race route per map
 
 #define LGCMODE_MAX_DISTANCE 700
 #define LGCMODE_DISTANCE_BUCKETS 20
@@ -154,19 +151,6 @@ typedef struct player_stats_s
 	int transferred_RLpacks;
 	int transferred_LGpacks;
 
-	// ctf stats
-	int ctf_points;			// use frags - this to calculate efficiency for ctf
-	int caps;				// flag captures
-	int f_defends;			// flag defends
-	int c_defends;			// carrier defends
-	int c_frags;			// frags on enemy carriers
-	int pickups;			// flag pickups
-	int returns;			// flag returns
-	float res_time;			// time with resistance rune
-	float str_time;			// time with strength rune
-	float hst_time;			// time with haste rune
-	float rgn_time;			// time with regen rune
-
 	// midair stats
 	int mid_stomps;			// stomps done on other players
 	int mid_bronze;			// bronze midairs
@@ -233,10 +217,6 @@ typedef struct vote_s
 	int teamoverlay;
 	int nospecs;
 	int coop;
-	int hooksmooth;
-	int hookfast;
-	int hookclassic;
-	int hookcrhook;
 	int antilag;
 	int privategame;
 	//int kick_unauthed;
@@ -1015,32 +995,9 @@ typedef struct gedict_s
 	pos_t pos[MAX_POSITIONS];				// for player pos_save / pos_move
 	float pos_move_time;					// for player pos_save / pos_move
 
-// { CTF
-	struct gedict_s *hook;					// grapple
-	qbool on_hook;						// are we on the grapple?
-	qbool hook_out;						// is the grapple in flight?
-	int ctf_flag;						// do we have a rune or flag?
-	float regen_time;					// time to update health if regen rune
-	float rune_sound_time;					// dont spam rune sounds (1 per second)
-	float carrier_frag_time;				// used for carrier assists
-	float return_flag_time;					// used for flag return assists
-	float rune_notify_time;					// already have a rune spam prevention
+	int ctf_flag;						// rune state (kept for bot code)
 	float carrier_hurt_time;				// time we last hurt enemy carrier
-	float rune_pickup_time;					// time we picked up current rune
-	float hook_damage_time;					// manage dps dealt to hooked enemies
-	float hook_cancel_time;					// delay cancel on throw with smooth hook
-	float hook_reset_time;					// marker for grapple reset (decoupled from `attack_finished`)
-	float hook_pullspeed;					// accelerate grapple velocity
-	float hook_pullspeed_accel;				// number by which to increment velocity
-	char *last_rune;					// name of last rune we send to client
-	float items2;						// using  ZQ_ITEMS2 extension in mvdsv we can use per client sigils for runes
 
-//
-// TF -- well, we does not support TF but require it for loading TF map as CTF map.
-//
-	int team_no;							// team number, as I got TF support it from 1 to 4. (up to 4 teams).
-// }
-//
 	int i_agmr; 							// Instagib AirGib Master rune
 
 	qbool was_jump;
@@ -1108,42 +1065,9 @@ typedef struct gedict_s
 	float mid_top_spawnfrag;
 	float mid_top_rl_efficiency;
 
-// { race
-	int race_id; 							// used by checkpoints,
-											// start checkpoint have id = 0,
-											// intermediate checkpoints have it from 1 to xxx,
-											// and end checkpoint have id xxx + 1
-	float race_volume;						// how loud to play sound() when you tocuh this checkpoint
-	int race_effects; 						// apply this effects when checkpoint is touched
-	int race_RouteNodeType;					// this is actually must be raceRouteNodeType_t
-											// but unwilling to move type definition out of race.c so using int
-
-	int race_ready;							// is player ready for race
-	int race_chasecam;						// does player want to follow other racers in line
-	int race_chasecam_freelook;				// disable server forcing v_angle on client
-	int race_chasecam_view;					// does follow uses the chasecam or 1st person view
-	int race_afk;							// counter for afk starts
-	qbool racer;							// this player is actively racing right now
-	qbool race_participant;					// this player participated in the current race
-	qbool muted;							// this player produces no sound
+	int trackent;							// pseudo spectating for players.
 	int hideentity;							// links to entity to hide in eye chasecam
 	qbool hideplayers;						// if set, all players hidden (read by mvdsv)
-	qbool hideplayers_default;				// racer can choose to have this on or off
-	int race_closest_guide_pos;				// when guide route loaded, this is closest position
-
-	// race_route_start entity fields
-	char *race_route_name;					// the name of the route
-	char *race_route_description;			// the description of the route
-	int race_route_timeout;					// the maximum time to complete the route
-	int race_route_weapon_mode;				// the weapon mode - see raceWeapoMode_t
-	int race_route_falsestart_mode;			// the falsestart mode - see raceFalseStartMode_t
-	float race_route_start_yaw;				// the player's initial yaw angle
-	float race_route_start_pitch;			// the player's initial pitch angle
-	int race_flags;							// flags affecting this particular object (teleports only atm)
-	int race_track;							// ent# of person this player is tracking (0 for default)
-// }
-
-	int trackent;							// pseudo spectating for players.
 // { bloodfest
 	qbool bloodfest_boss;					// is monsters is bloodfest boss?
 // }
@@ -1204,123 +1128,3 @@ typedef struct gedict_s
 	func_t SendEntity;
 // }
 } gedict_t;
-
-typedef enum
-{
-	raceWeaponUnknown = 0,					// this must never happens
-	raceWeaponNo,							// weapon not allowed. NOTE: must be second in this enum!!!
-	raceWeaponAllowed,						// weapon allowed
-	raceWeapon2s,							// weapon allowed after 2s
-	raceWeaponMAX
-} raceWeapoMode_t;
-
-typedef enum
-{
-	raceFalseStartUnknown = 0,				// this must never happens
-	raceFalseStartNo,						// no false start, player is stuck until 'go'
-	raceFalseStartYes,						// false start allowed, player can move anytime before 'go'
-	raceFalseStartMAX
-} raceFalseStartMode_t;
-
-typedef enum
-{
-	nodeUnknown = 0,						// this node is fucked by lame coding, I mean this must never happens
-	nodeStart,								// this node is start of race route
-	nodeCheckPoint,							// this node is intermediate
-	nodeEnd,								// this node is end of race route
-	nodeMAX
-} raceRouteNodeType_t;
-
-typedef struct
-{
-	raceRouteNodeType_t type;				// race route node type
-	vec3_t ang;								// this is only need for start node, so we can set player view angles
-	vec3_t org;								// node origin in 3D space
-	vec3_t sizes;							// dimensions (if 0, default)
-} raceRouteNode_t;
-
-typedef struct
-{
-	char name[128];							// NOTE: this will probably FUCK QVM!!!
-	char desc[128];							// NOTE: this will probably FUCK QVM!!!
-	int cnt;								// how much nodes we actually have, no more than MAX_ROUTE_NODES
-	float timeout;							// when timeout of race must occur
-	raceWeapoMode_t weapon;					// weapon mode
-	raceFalseStartMode_t falsestart;		// start mode
-	raceRouteNode_t node[MAX_ROUTE_NODES];	// nodes of this route, fixed array, yeah I'm lazy
-} raceRoute_t;
-
-typedef struct
-{
-	float time;
-	char racername[64];
-	char demoname[64];
-	float distance;
-	float maxspeed;
-	float avgspeed;
-	float avgcount;
-	char date[64];
-	raceWeapoMode_t weaponmode;				// weapon mode
-	raceFalseStartMode_t startmode;			// start mode
-	int playernumber;
-	int position;
-} raceRecord_t;
-
-typedef enum
-{
-	raceNone = 0,							// race is inactive
-	raceCD,									// race in count down state
-	raceActive,								// race is active
-} raceStatus_t;
-
-#define NUM_CHASECAMS	4 					// number of camera views defined
-#define NUM_BESTSCORES	10
-
-typedef struct
-{
-	raceRecord_t records[NUM_BESTSCORES];	// array of best scores information
-	raceRecord_t currentrace[MAX_CLIENTS];	// curent score information
-
-	int cnt;								// how much we actually have of routes, no more than MAX_ROUTES
-	int active_route;						// which route active right now
-	raceRoute_t route[MAX_ROUTES];			// fixed array of routes
-
-// { count down
-	int cd_cnt;								// 4 3 2 1 GO!
-	float cd_next_think;					//
-// }
-
-	int timeout_setting;					// just how long timeout
-	float timeout;							// when timeout of race must occur
-	float start_time;						// when race was started
-
-// {
-	char top_nick[64];						// NOTE: this will probably FUCK QVM!!!
-	int top_time;
-// }
-
-	int next_race_time;						// used for centerprint, help us print it not each server frame but more rare, each 100ms or something
-
-	qbool warned;							// do we warned why we can't start race
-	qbool race_recording;					// is race being recorded?
-	int next_racer;							// this is queue of racers
-
-	raceWeapoMode_t weapon;					// weapon mode
-
-	raceFalseStartMode_t falsestart;		// start type
-
-	raceStatus_t status;					// race status
-
-	int pacemaker_time;						// time of the current pacemaker route
-	char pacemaker_nick[64];				// name of the current pacemaker
-
-	int racers_complete;					// number of players finished current race
-	int last_completion_time;				// time of last player to complete the race
-	int last_completion_eq;					// number of players equalling the last completion time
-	int racers_competing;					// number of players starting current race
-
-	int rounds;								// number of rounds in this match
-	int round_number;						// current round number
-} race_t;
-
-extern race_t race;							// whole race struct

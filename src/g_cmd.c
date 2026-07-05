@@ -533,7 +533,7 @@ qbool ClientSay(qbool isTeamSay)
 				{
 					; // allow team messages to everyone in coop from players.
 				}
-				else if (!isTeam() && !isCTF())
+				else if (!isTeam())
 				{
 					continue; // non team game
 				}

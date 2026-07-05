@@ -62,15 +62,6 @@ int k_matchLess_idle_warn;
 gameType_t k_mode;				// game type: DUEL, TP, FFA
 int k_lastvotedmap;				// last voted map, used for agree command?
 
-// { CTF
-int k_ctf_custom_models;		// if server has flag/grapple models you can enable them here
-// http://www.quakeworld.us/ult/ctf/pak0.pak  (only 300kb)
-// if not we use old style keys and ax/voreball for grapple
-#ifdef CTF_RELOADMAP
-qbool k_ctf;					// is ctf was active at map load
-#endif
-// }
-
 int k_allowed_free_modes;		// reflect appropriate cvar - but changed only at map load
 
 // { cmd flood ptotect

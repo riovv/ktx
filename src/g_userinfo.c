@@ -316,20 +316,6 @@ qbool FixPlayerColor(char *newcolor)
 		return false;
 	}
 
-	if (isCTF())
-	{
-		if (streq(getteam(self), "red"))
-		{
-			stuffcmd_flags(self, STUFFCMD_IGNOREINDEMO, "color %d %d\n",
-							iKey(self, "topcolor") == 13 ? 4 : iKey(self, "topcolor"), 4);
-		}
-		else if (streq(getteam(self), "blue"))
-		{
-			stuffcmd_flags(self, STUFFCMD_IGNOREINDEMO, "color %d %d\n",
-							iKey(self, "topcolor") == 4 ? 13 : iKey(self, "topcolor"), 13);
-		}
-	}
-
 	return false;
 }
 
@@ -397,35 +383,13 @@ qbool FixPlayerTeam(char *newteam)
 		}
 	}
 
-	if (!match_in_progress && isCTF() && self->ready)
-	{
-		// if CTF and player ready allow change team to red or blue
-		s1 = newteam;
-		s2 = getteam(self);
-
-		if (strneq(s1, "red") && strneq(s1, "blue"))
-		{
-			G_sprint(self, 2, "You must be on team red or blue for CTF\n");
-			stuffcmd_flags(self, STUFFCMD_IGNOREINDEMO, "team \"%s\"\n", s2); // sends this to client - so he get right team too
-
-			return true;
-		}
-
-		stuffcmd_flags(self, STUFFCMD_IGNOREINDEMO, "color %d\n", streq(s1, "red") ? 4 : 13);
-	}
-
-	if (!match_in_progress && (isTeam() || isCTF()) && self->ready && strnull(newteam))
+	if (!match_in_progress && isTeam() && self->ready && strnull(newteam))
 	{
 		// do not allow empty team, because it cause problems
 		G_sprint(self, 2, "Empty %s not allowed\n", redtext("team"));
 		stuffcmd_flags(self, STUFFCMD_IGNOREINDEMO, "team \"%s\"\n", getteam(self)); // sends this to client - so he get right team too
 
 		return true;
-	}
-
-	if (isCTF() && (streq(newteam, "red") || streq(newteam, "blue")))
-	{
-		stuffcmd_flags(self, STUFFCMD_IGNOREINDEMO, "auto%s\n", newteam);
 	}
 
 	return false;

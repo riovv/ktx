@@ -52,7 +52,6 @@ field_t expfields[] =
 	{ "gravity", 		FOFS(gravity), 		F_FLOAT },
 	{ "isBot", 			FOFS(isBot), 		F_INT },
 	{ "brokenankle", 	FOFS(brokenankle), 	F_FLOAT },
-	{ "items2", 		FOFS(items2), 		F_FLOAT },
 	{ "hideentity", 	FOFS(hideentity), 	F_INT },
 	{ "trackent", 		FOFS(trackent), 	F_INT },
 	{ "hideplayers", 	FOFS(hideplayers), 	F_INT },
@@ -199,7 +198,6 @@ intptr_t VISIBILITY_VISIBLE vmMain(
 			self->netname = netnames[NUM_FOR_EDICT(self)-1];
 			infokey(self, "name", self->netname, CLIENT_NAME_LEN);
 
-			self->last_rune = "setme";
 			self->classname = ""; // at least empty classname
 			self->connect_time = g_globalvars.time;
 			self->k_lastspawn = world; // set safe value
@@ -238,7 +236,6 @@ intptr_t VISIBILITY_VISIBLE vmMain(
 			}
 
 			update_ghosts();
-			self->hideplayers_default = (self->ezquake_version < 4957);
 
 			return 1;
 
@@ -489,8 +486,6 @@ void G_InitGame(int levelTime, int randomSeed)
 	GetMapList();
 
 	Init_cmds();
-
-	race_init();
 
 	// put mod version in serverinfo
 	localcmd("serverinfo \"%s\" \"%s\"\n", MOD_SERVERINFO_MOD_KEY, MOD_VERSION);

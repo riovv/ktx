@@ -22,7 +22,6 @@
 #define JSON_CR  ""
 #endif
 
-static void json_player_ctf_stats(fileHandle_t handle, player_stats_t *stats);
 static void json_player_instagib_stats(fileHandle_t handle, player_stats_t *stats);
 static void json_player_midair_stats(fileHandle_t handle, player_stats_t *stats);
 static void json_player_lgc_stats(fileHandle_t handle, gedict_t *player);
@@ -401,11 +400,6 @@ void json_player_detail(fileHandle_t handle, int player_num, gedict_t *player, c
 
 	json_items_footer(handle, count);
 
-	if (isCTF())
-	{
-		json_player_ctf_stats(handle, stats);
-	}
-
 	if (cvar("k_instagib"))
 	{
 		json_player_instagib_stats(handle, stats);
@@ -503,61 +497,6 @@ void json_match_footer(fileHandle_t handle)
 	S2di(handle, "}" JSON_CR);
 }
 
-static void json_player_ctf_stats(fileHandle_t handle, player_stats_t *stats)
-{
-	qbool any = false;
-
-	S2di(handle, "," JSON_CR);
-	S2di(handle, INDENT6 "\"ctf\": {" JSON_CR);
-	if (stats->ctf_points)
-	{
-		S2di(handle, INDENT8 "\"points\": %d", stats->ctf_points);
-		any = true;
-	}
-
-	if (stats->caps)
-	{
-		COMMA_CHECK(handle, any);
-		S2di(handle, INDENT8 "\"caps\": %d", stats->caps);
-	}
-
-	if (stats->f_defends)
-	{
-		COMMA_CHECK(handle, any);
-		S2di(handle, INDENT8 "\"defends\": %d", stats->f_defends);
-	}
-
-	if (stats->c_defends)
-	{
-		COMMA_CHECK(handle, any);
-		S2di(handle, INDENT8 "\"carrier-defends\": %d", stats->c_defends);
-	}
-
-	if (stats->c_frags)
-	{
-		COMMA_CHECK(handle, any);
-		S2di(handle, INDENT8 "\"carrier-frags\": %d", stats->c_frags);
-	}
-
-	if (stats->pickups)
-	{
-		COMMA_CHECK(handle, any);
-		S2di(handle, INDENT8 "\"pickups\": %d", stats->pickups);
-	}
-
-	if (stats->returns)
-	{
-		COMMA_CHECK(handle, any);
-		S2di(handle, INDENT8 "\"returns\": %d", stats->returns);
-	}
-
-	COMMA_CHECK(handle, any);
-	S2di(handle, INDENT8 "\"runes\": [%d, %d, %d, %d]" JSON_CR, (int)(stats->res_time + 0.5f),
-			(int)(stats->str_time + 0.5f), (int)(stats->hst_time + 0.5f),
-			(int)(stats->rgn_time + 0.5f));
-	S2di(handle, INDENT6 "}");
-}
-
 static void json_player_instagib_stats(fileHandle_t handle, player_stats_t *stats)
 {
 	qbool any = false;
@@ -652,80 +591,3 @@ static void json_player_lgc_stats(fileHandle_t handle, gedict_t *player)
 	S2di(handle, "}" JSON_CR);
 }
 
-void json_race_detail(fileHandle_t handle)
-{
-	extern gedict_t* race_find_racer(gedict_t *p);
-	qbool any = false;
-	race_stats_score_t *stats;
-
-	S2di(handle, INDENT2 "\"race\": {" JSON_CR);
-	S2di(handle, INDENT4 "\"route\": %d," JSON_CR, race.active_route - 1);
-	S2di(handle,
-			INDENT4 "\"weapon-mode\": \"%s\"," JSON_CR,
-			race.weapon == raceWeaponAllowed ? "allowed" :
-			race.weapon == raceWeapon2s ? "delayed" : "none");
-	S2di(handle, INDENT4 "\"can-false-start\": %s," JSON_CR,
-			race.falsestart == raceFalseStartYes ? "true" : "false");
-	S2di(handle, INDENT4 "\"match\": %s," JSON_CR, race_match_mode() ? "true" : "false");
-	if (!strnull(race.pacemaker_nick))
-	{
-		S2di(handle, INDENT4 "\"pacemaker\": { \"time\": %.3f, \"name\": \"%s\" }," JSON_CR,
-				race.pacemaker_time * 0.001f, json_string(race.pacemaker_nick));
-	}
-
-	if (race_match_mode())
-	{
-		int player_count;
-		int i;
-
-		S2di(handle, INDENT4 "\"scoring\": \"%s\"," JSON_CR, race_scoring_system_name());
-		stats = race_get_player_stats(&player_count);
-		S2di(handle, INDENT4 "\"racers\": [" JSON_CR);
-		for (i = 0; i < player_count; ++i)
-		{
-			COMMA_CHECK(handle, any);
-			S2di(handle, INDENT6 "{ \"bestTime\": %.3f, \"completions\": %d, \"score\": %d, "
-					"\"racer\": \"%s\", \"distance\": %f, \"time\": %.3f, \"wins\": %d }",
-					stats[i].best_time / 1000.0f, stats[i].completions, stats[i].score,
-					json_string(stats[i].name), stats[i].total_distance,
-					stats[i].total_time / 1000.0f, stats[i].wins);
-		}
-
-		NEWLINE_CHECK(handle, any);
-		S2di(handle, INDENT4 "]" JSON_CR);
-	}
-	else
-	{
-		gedict_t *p;
-		S2di(handle, INDENT4 "\"racers\": [" JSON_CR);
-		for (p = world; (p = race_find_race_participants(p)); /**/)
-		{
-			int player_number = NUM_FOR_EDICT(p) - 1;
-			raceRecord_t *record = NULL;
-
-			if ((player_number < 0)
-					|| (player_number >= (sizeof(race.currentrace) / sizeof(race.currentrace[0]))))
-			{
-				continue;
-			}
-
-			record = &race.currentrace[player_number];
-
-			if (!record->time)
-			{
-				continue;
-			}
-
-			COMMA_CHECK(handle, any);
-			S2di(handle, INDENT6 "{ \"avgspeed\": %f, \"distance\": %f, \"time\": %f, "
-					"\"racer\": \"%s\", \"maxspeed\": %f }",
-					record->avgspeed / record->avgcount, record->distance, record->time / 1000.0f,
-					json_string(p->netname), record->maxspeed);
-		}
-
-		NEWLINE_CHECK(handle, any);
-		S2di(handle, INDENT4 "]" JSON_CR);
-	}
-
-	S2di(handle, INDENT2 "}" JSON_CR);
-}

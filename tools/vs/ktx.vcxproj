@@ -208,12 +208,10 @@
     <ClCompile Include="..\..\src\client.c" />
     <ClCompile Include="..\..\src\combat.c" />
     <ClCompile Include="..\..\src\commands.c" />
-    <ClCompile Include="..\..\src\ctf.c" />
     <ClCompile Include="..\..\src\doors.c" />
     <ClCompile Include="..\..\src\fb_globals.c" />
     <ClCompile Include="..\..\src\files.c" />
     <ClCompile Include="..\..\src\globals.c" />
-    <ClCompile Include="..\..\src\grapple.c" />
     <ClCompile Include="..\..\src\g_cmd.c" />
     <ClCompile Include="..\..\src\g_main.c" />
     <ClCompile Include="..\..\src\g_mem.c" />
@@ -239,11 +237,9 @@
     <ClCompile Include="..\..\src\plats.c" />
     <ClCompile Include="..\..\src\player.c" />
     <ClCompile Include="..\..\src\q_shared.c" />
-    <ClCompile Include="..\..\src\race.c" />
     <ClCompile Include="..\..\src\route_calc.c" />
     <ClCompile Include="..\..\src\route_fields.c" />
     <ClCompile Include="..\..\src\route_lookup.c" />
-    <ClCompile Include="..\..\src\runes.c" />
     <ClCompile Include="..\..\src\server.c" />
     <ClCompile Include="..\..\src\spectate.c" />
     <ClCompile Include="..\..\src\sp_ai.c" />

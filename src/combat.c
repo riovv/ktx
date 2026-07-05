@@ -448,16 +448,6 @@ void T_Damage(gedict_t *targ, gedict_t *inflictor, gedict_t *attacker, float dam
 		return;
 	}
 
-	// can't damage other players in race
-	if (isRACE() && (attacker != targ))
-	{
-		if ((targ->ct == ctPlayer) && (attacker->ct == ctPlayer))
-		{
-			return;
-		}
-	}
-
-
 	if ((int)cvar("k_midair"))
 	{
 		midair = true;
@@ -477,25 +467,6 @@ void T_Damage(gedict_t *targ, gedict_t *inflictor, gedict_t *attacker, float dam
 		// in dmm4 quad is octa actually, unless tot_mode_enabled(),
 		// then it's possible to set custom multiplier
 		damage *= (deathmatch != 4 ? 4 : tot_mode_enabled() ? FrogbotQuadMultiplier() : 8);
-	}
-
-	// ctf strength rune
-	if (attacker->ctf_flag & CTF_RUNE_STR)
-	{
-		damage *= (cvar("k_ctf_rune_power_str") / 2) + 1;
-	}
-
-	// ctf resistance rune
-	if (targ->ctf_flag & CTF_RUNE_RES)
-	{
-		damage /= (cvar("k_ctf_rune_power_res") / 2) + 1;
-		ResistanceSound(targ);
-	}
-
-	// did we hurt enemy flag carrier?
-	if ((targ->ctf_flag & CTF_FLAG) && (!streq(targteam, attackerteam)))
-	{
-		attacker->carrier_hurt_time = g_globalvars.time;
 	}
 
 	// in teamplay 4 we do no armor or health damage to teammates (unless telefrag), but do apply velocity changes
@@ -1140,7 +1111,7 @@ void T_RadiusDamageApply(gedict_t *inflictor, gedict_t *attacker, gedict_t *head
 
 				dmg_is_splash = 1; // mark damage as splash
 
-				if (cvar("k_instagib") || isRACE()) // in instagib splash applied to inflictor only, for coil jump
+				if (cvar("k_instagib")) // in instagib splash applied to inflictor only, for coil jump
 				{
 					if (head == attacker)
 					{
@@ -1173,15 +1144,6 @@ void T_RadiusDamage(gedict_t *inflictor, gedict_t *attacker, float damage, gedic
 					deathType_t dtype)
 {
 	gedict_t *head;
-
-	if (isRACE())
-	{
-		attacker->s.v.solid = SOLID_BBOX;
-		T_RadiusDamageApply(inflictor, attacker, attacker, damage, dtype);
-		attacker->s.v.solid = SOLID_NOT;
-
-		return;
-	}
 
 	head = trap_findradius(world, inflictor->s.v.origin, damage + 40);
 

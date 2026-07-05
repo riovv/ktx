@@ -564,12 +564,6 @@ void teleport_player(gedict_t *player, vec3_t origin, vec3_t angles, int flags)
 
 	if (player->ct == ctPlayer)
 	{
-		if ((player->s.v.weapon == IT_HOOK) && player->hook_out)
-		{
-			GrappleReset(player->hook);
-			player->attack_finished = g_globalvars.time + 0.25;
-		}
-
 		player->s.v.fixangle = 1;	// turn this way immediately
 
 // <Tonik> qqshka|Tara, teleport_time these days is used by waterjump code
@@ -715,17 +709,12 @@ void teleport_touch(void)
 	}
 
 // only teleport living creatures
-	if (ISDEAD(other) || (!isRACE() && (other->s.v.solid != SOLID_SLIDEBOX)))
+	if (ISDEAD(other) || (other->s.v.solid != SOLID_SLIDEBOX))
 	{
 		return;
 	}
 
 
-
-	if (isRACE() && race_handle_event(other, self, "touch"))
-	{
-		return;
-	}
 
 // activator = other;
 	SUB_UseTargets();
@@ -935,19 +924,6 @@ void hurt_on(void)
 
 void hurt_items(void)
 {
-	if (cvar("k_ctf_hurt_items"))
-	{
-		if (streq(other->classname, "item_flag_team1") || streq(other->classname, "item_flag_team2"))
-		{
-			// Cause flag to return to spawn position.
-			other->super_time = g_globalvars.time;
-		}
-		else if (streq(other->classname, "rune"))
-		{
-			// Cause rune to respawn.
-			other->s.v.nextthink = g_globalvars.time;
-		}
-	}
 }
 
 void hurt_touch(void)

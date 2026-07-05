@@ -43,7 +43,7 @@ int GetSpecWizard(void)
 {
 	int k_asw = bound(0, cvar("allow_spec_wizard"), 2);
 
-	if (match_in_progress || intermission_running || isRACE())
+	if (match_in_progress || intermission_running)
 	{
 		return 0;
 	}

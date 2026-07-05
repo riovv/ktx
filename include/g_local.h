@@ -25,7 +25,6 @@
 
 // g_local.h -- local definitions for game module
 //#define DEBUG
-#define CTF_RELOADMAP /* changing ctf status will force map reload */
 //#define HITBOXCHECK /* various changes which help test players hit box */
 
 #include "q_shared.h"
@@ -164,8 +163,7 @@ typedef enum
 	gtUnknown = 0,
 	gtDuel,
 	gtTeam,
-	gtFFA,
-	gtCTF
+	gtFFA
 } gameType_t;
 
 typedef enum
@@ -189,9 +187,7 @@ typedef enum
 	lsUnknown = 0,
 	lsDuel,
 	lsTeam,
-	lsFFA,
-	lsCTF,
-	lsRACE
+	lsFFA
 } lsType_t; // lastscores type
 
 // Spike:
@@ -367,7 +363,6 @@ qbool isghost(gedict_t *ed);
 qbool isDuel(void);
 qbool isTeam(void);
 qbool isFFA(void);
-qbool isCTF(void);
 qbool isUnknown(void);
 int tp_num(void);
 int GetUserID(gedict_t *p);
@@ -603,21 +598,6 @@ void teleport_player(gedict_t *player, vec3_t origin, vec3_t angles, int flags);
 
 #define TELEDEATH(e) ((e)->deathtype == dtTELE1 || (e)->deathtype == dtTELE2 || (e)->deathtype == dtTELE3)
 
-// runes.c
-void DropRune(void);
-void SpawnRunes(qbool yes);
-void TossRune(void);
-void ResistanceSound(gedict_t *player);
-void HasteSound(gedict_t *player);
-void RegenerationSound(gedict_t *player);
-
-// ctf.c
-void PlayerDropFlag(gedict_t *player, qbool tossed);
-void RegenFlags(qbool yes);
-void AddHook(qbool yes);
-void CTF_Obituary(gedict_t *targ, gedict_t *attacker);
-void CTF_CheckFlagsAsKeys(void);
-
 // logs.c
 void log_open(const char *fmt, ...) PRINTF_FUNC(1);
 void log_printf(const char *fmt, ...) PRINTF_FUNC(1);
@@ -689,12 +669,10 @@ void execute_rules_reset(void);
 #define UM_4ON4		( 1<<3  ) // `0000 0000 0000 0000 0000 0000 0000 1000` = 8
 #define UM_10ON10	( 1<<4  ) // `0000 0000 0000 0000 0000 0000 0001 0000` = 16
 #define UM_FFA		( 1<<5  ) // `0000 0000 0000 0000 0000 0000 0010 0000` = 32
-#define UM_CTF		( 1<<6  ) // `0000 0000 0000 0000 0000 0000 0100 0000` = 64
 #define UM_2ON2ON2	( 1<<8  ) // `0000 0000 0000 0000 0000 0001 0000 0000` = 256
 #define UM_3ON3ON3	( 1<<9  ) // `0000 0000 0000 0000 0000 0010 0000 0000` = 512
 #define UM_4ON4ON4	( 1<<10 ) // `0000 0000 0000 0000 0000 0100 0000 0000` = 1024
 #define UM_XONX	    ( 1<<11 ) // `0000 0000 0000 0000 0000 1000 0000 0000` = 2048
-#define UM_RACEMODE ( 1<<31 ) // `1000 0000 0000 0000 0000 0000 0000 0000` =
 
 typedef struct usermode_s
 {
@@ -702,7 +680,6 @@ typedef struct usermode_s
 	const char *displayname;
 	const char *initstring;
 	int um_flags;
-	int race_plrs_per_team;
 } usermode;
 
 extern usermode um_list[];
@@ -794,10 +771,6 @@ void vote_check_all(void);
 #define OV_NOSPECS ( VOTE_FOFS ( nospecs ) )
 #define OV_TEAMOVERLAY ( VOTE_FOFS ( teamoverlay ) )
 #define OV_COOP ( VOTE_FOFS ( coop ) )
-#define OV_HOOKSMOOTH (VOTE_FOFS ( hooksmooth ) )
-#define OV_HOOKFAST (VOTE_FOFS ( hookfast ) )
-#define OV_HOOKCLASSIC (VOTE_FOFS ( hookclassic ) )
-#define OV_HOOKCRHOOK (VOTE_FOFS ( hookcrhook ) )
 #define OV_ANTILAG ( VOTE_FOFS ( antilag ) )
 #define OV_PRIVATE ( VOTE_FOFS ( privategame ) )
 //#define OV_KICKUNAUTHED ( VOTE_FOFS (kick_unauthed) )
@@ -848,60 +821,6 @@ qbool VoteMapSpecific(char *map);
 void EndMatch(float skip_log);
 void StatsToFile(void);
 
-// grapple.c
-void GrappleThrow(void);
-void GrappleService(void);
-void GrappleReset(gedict_t *rhook);
-void CancelHook(gedict_t *owner);
-float IncreasePullSpeed(float speed, float incr);
-float DecreasePullSpeed(float speed, float decr);
-
-// race.c
-
-typedef struct race_stats_score_s
-{
-	char *name;
-	int wins;
-	int score;
-	int completions;
-	float best_time;
-	float total_time;
-	float total_distance;
-} race_stats_score_t;
-
-qbool isRACE(void);
-void apply_race_settings(void);
-void ToggleRace(void);
-void RaceCountdownChange(float t);
-void StartDemoRecord(void);
-
-qbool race_weapon_allowed(gedict_t *p);
-
-void race_init(void);
-void race_shutdown(char *msg);
-void race_think(void);
-
-void race_add_standard_routes(void);
-
-void race_set_one_player_movetype_and_etc(gedict_t *p);
-
-gedict_t* race_get_racer(void);
-
-void setwepnone(gedict_t *p);
-void setwepall(gedict_t *p);
-qbool race_handle_event(gedict_t *player, gedict_t *object, const char *eventName);
-void race_player_pre_think(void);
-void race_player_post_think(void);
-int race_count_votes_req(float percentage);
-qbool race_allow_map_vote(gedict_t *player);
-
-gedict_t* race_find_race_participants(gedict_t *p);
-
-qbool race_match_mode(void);
-char* race_scoring_system_name(void);
-void race_match_stats(void);
-race_stats_score_t* race_get_player_stats(int *players);
-
 // globals.c
 
 extern int k_bloodfest;      // blood fest mode
@@ -945,13 +864,7 @@ extern int k_matchLess_idle_warn;
 
 extern gameType_t k_mode;   // game type: DUEL, TP, FFA
 extern int k_lastvotedmap;	// last voted map, used for agree command?
-// { CTF
-extern int k_ctf_custom_models;	// use or not custom models
 extern int k_allowed_free_modes; // reflect appropriate cvar - but changed only at map load
-#ifdef CTF_RELOADMAP
-extern qbool k_ctf;			// is ctf was active at map load
-#endif
-// }
 
 // { cmd flood protection
 
