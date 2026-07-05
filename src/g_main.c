@@ -488,8 +488,6 @@ void G_InitGame(int levelTime, int randomSeed)
 
 	GetMapList();
 
-	ra_init_que();
-
 	Init_cmds();
 
 	race_init();

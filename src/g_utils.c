@@ -2279,18 +2279,6 @@ void ghost2scores(gedict_t *g)
 		return; // Scoreboard ghosts disabled, probably for QE compatibility.
 	}
 
-	if (isRA())
-	{
-		// Renzo: Disconnected player shouldn't be listed in the scoreboard in RA.
-		// qqshka: Personally I'm not sure how it must be, but folloing Renzo's words atm.
-		return;
-	}
-
-	if (isCA())
-	{
-		// Don't show disconnected players in scoreboard in CA.
-		return;
-	}
 
 	if (strneq(g->classname, "ghost"))
 	{

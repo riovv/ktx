@@ -298,7 +298,7 @@ void health_touch(void)
 		}
 	}
 
-	if ((match_in_progress != 2) || !readytostart())
+	if ((match_in_progress != 2))
 	{
 		return;
 	}
@@ -455,7 +455,7 @@ void armor_touch(void)
 		return;
 	}
 
-	if ((match_in_progress != 2) || !readytostart())
+	if ((match_in_progress != 2))
 	{
 		return;
 	}
@@ -827,7 +827,7 @@ void weapon_touch(void)
 		return;
 	}
 
-	if ((match_in_progress != 2) || !readytostart())
+	if ((match_in_progress != 2))
 	{
 		return;
 	}
@@ -1205,7 +1205,7 @@ void ammo_touch(void)
 		return;
 	}
 
-	if ((match_in_progress != 2) || !readytostart())
+	if ((match_in_progress != 2))
 	{
 		return;
 	}
@@ -1539,7 +1539,7 @@ void key_touch(void)
 		return;
 	}
 
-	if ((match_in_progress != 2) || !readytostart())
+	if ((match_in_progress != 2))
 	{
 		return;
 	}
@@ -1703,7 +1703,7 @@ void sigil_touch(void)
 		return;
 	}
 
-	if ((match_in_progress != 2) || !readytostart())
+	if ((match_in_progress != 2))
 	{
 		return;
 	}
@@ -2027,7 +2027,7 @@ void powerup_touch(void)
 
 	if (!k_practice) // #practice mode#
 	{
-		if ((match_in_progress != 2) || !readytostart())
+		if ((match_in_progress != 2))
 		{
 			return;
 		}
@@ -2389,11 +2389,7 @@ void BackpackTouch(void)
 		}
 	}
 
-	//crt -- no backpacks in waiting area
-	if (isRA() && !isWinner(other) && !isLoser(other))
-	{
-		return;
-	}
+
 
 	if (cvar("k_midair") && other->super_damage_finished)
 	{

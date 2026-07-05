@@ -29,7 +29,6 @@ void ReportMe(void);
 void AdminImpBot(void);
 void CaptainPickPlayer(void);
 void ChasecamToggleButton(void);
-void ClanArenaTrackingToggleButton(void);
 
 // Bots support
 void BotsRocketSpawned(gedict_t *newmis);
@@ -139,10 +138,7 @@ void W_FireAxe(void)
 		// hit wall
 
 		//crt - get rid of axe sound for spec
-		if (!isRA() || (isWinner(self) || isLoser(self)))
-		{
-			sound(self, CHAN_WEAPON, "player/axhit2.wav", 1, ATTN_NORM);
-		}
+		sound(self, CHAN_WEAPON, "player/axhit2.wav", 1, ATTN_NORM);
 
 		WriteByte( MSG_MULTICAST, SVC_TEMPENTITY);
 		WriteByte( MSG_MULTICAST, TE_GUNSHOT);
@@ -1173,7 +1169,7 @@ void W_FireLightning(void)
 // explode if under water
 	if ((self->s.v.waterlevel > 1) && (match_in_progress == 2))
 	{
-		if (isRA() || isCA() || k_bloodfest)
+		if (k_bloodfest)
 		{
 			self->s.v.ammo_cells = 0;
 			W_SetCurrentAmmo();
@@ -1361,18 +1357,7 @@ void W_FireGrenade(void)
 
 	if (match_in_progress == 2)
 	{
-		if (isCA())
-		{
-			self->s.v.currentammo = self->ca_ammo_grenades = self->ca_ammo_grenades - 1;
-
-			if (!self->ca_ammo_grenades)
-			{
-				self->s.v.items -= IT_GRENADE_LAUNCHER;
-			}
-			
-			AmmoUsed(self);
-		}		
-		else if ((deathmatch != 4) && !k_bloodfest)
+		if ((deathmatch != 4) && !k_bloodfest)
 		{
 			self->s.v.currentammo = self->s.v.ammo_rockets = self->s.v.ammo_rockets - 1;
 			AmmoUsed(self);
@@ -1875,14 +1860,7 @@ void W_SetCurrentAmmo(void)
 			break;
 
 		case IT_GRENADE_LAUNCHER:
-			if (isCA())
-			{
-				self->s.v.currentammo = self->ca_ammo_grenades;
-			}
-			else
-			{
-				self->s.v.currentammo = self->s.v.ammo_rockets;
-			}
+			self->s.v.currentammo = self->s.v.ammo_rockets;
 			self->weaponmodel = "progs/v_rock.mdl";
 			self->s.v.weaponframe = 0;
 			items |= IT_ROCKETS;
@@ -2115,10 +2093,7 @@ void W_Attack(void)
 			}
 
 			// crt - no axe sound for spec
-			if (!isRA() || (isWinner(self) || isLoser(self)))
-			{
-				sound(self, CHAN_WEAPON, "weapons/ax1.wav", 1, ATTN_NORM);
-			}
+			sound(self, CHAN_WEAPON, "weapons/ax1.wav", 1, ATTN_NORM);
 
 			r = g_random();
 			if (r < 0.25)
@@ -2901,11 +2876,6 @@ void W_WeaponFrame(void)
 		}
 	}
 
-	if (isCA())
-	{
-		ClanArenaTrackingToggleButton();
-	}
-
 	ImpulseCommands();
 
 	if (!race_weapon_allowed(self))
@@ -2922,15 +2892,6 @@ void W_WeaponFrame(void)
 
 	if (self->s.v.button0 && !intermission_running)
 	{
-		if (!readytostart())
-		{
-			return;	// RA restrictions
-		}
-
-		if (!CA_can_fire(self))
-		{
-			return;	// CA restrictions
-		}
 
 		if ((match_in_progress == 1) || !can_prewar(true))
 		{

@@ -432,13 +432,6 @@ static void calculateEfficiency(gedict_t *player)
 					/ (player->s.v.frags - player->ps.ctf_points + player->deaths) * 100;
 		}
 	}
-	else if (isRA())
-	{
-		player->efficiency = (
-				(player->ps.loses + player->ps.wins) ?
-						(player->ps.wins * 100.0f) / (player->ps.loses + player->ps.wins) :
-						0);
-	}
 	else
 	{
 		if (player->s.v.frags < 1)

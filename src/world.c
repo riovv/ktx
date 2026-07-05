@@ -1287,30 +1287,6 @@ void FixCTFItems(void)
 	k_ctf_hook = cvar("k_ctf_hook");
 }
 
-void FixRA(void)
-{
-	static qbool old_k_rocketarena = false;	// static
-
-	if (framecount == 1)
-	{
-		return; // can't guess here something yet
-	}
-
-	if (framecount == 2)
-	{
-		old_k_rocketarena = isRA(); // ok, save RA status after world spawn, and start check status changes on 3-t frame
-
-		return;
-	}
-
-	// do that even match in progress...
-	if (old_k_rocketarena != isRA())
-	{
-		old_k_rocketarena = isRA();
-		G_bprint(2, "%s: RA settings changed, map will be reloaded\n", redtext("WARNING"));
-		changelevel(mapname);
-	}
-}
 
 void FixRace(void)
 {
@@ -1485,21 +1461,6 @@ void SetMode4ServerInfo(void)
 		if (lgc_enabled())
 		{
 			strlcat(mode, "-lgc", sizeof(mode));
-		}
-
-		if (cvar("k_clan_arena") == 1)
-		{
-			strlcat(mode, "-ca", sizeof(mode));
-		}
-
-		if (cvar("k_clan_arena") == 2)
-		{
-			strlcat(mode, "-wo", sizeof(mode));
-		}
-
-		if (isRA())
-		{
-			strlcat(mode, "-ra", sizeof(mode));
 		}
 
 		if (cvar("k_dmm4_gren_mode"))
@@ -1685,7 +1646,7 @@ void FixRules(void)
 	{
 		if (((timelimit == 0) && (fraglimit == 0)) || (timelimit > k_tt) || (timelimit < 0))
 		{
-			if (!isRACE() && !isCA())
+			if (!isRACE())
 			{
 				cvar_fset("timelimit", timelimit = k_tt); // sensible default if no max set
 			}
@@ -1832,8 +1793,6 @@ void StartFrame(int time)
 
 	FixCTFItems(); // if modes have changed we may need to add/remove flags etc
 
-	FixRA(); // we may need reload map
-
 	FixRace(); // we may need reload map
 
 	FixPowerups();
@@ -1857,16 +1816,6 @@ void StartFrame(int time)
 	if (k_matchLess && !match_in_progress && !k_bloodfest)
 	{
 		StartTimer(); // trying start countdown in matchless mode
-	}
-
-	if (isRA())
-	{
-		ra_Frame();
-	}
-
-	if (isCA())
-	{
-		CA_Frame();
 	}
 
 	if (framecount > 10)

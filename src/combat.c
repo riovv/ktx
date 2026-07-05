@@ -54,7 +54,7 @@ qbool ISLIVE(gedict_t *e)
 
 	if (e->ct == ctPlayer)
 	{
-		return ((e->s.v.health > 0) && e->ca_alive);
+		return (e->s.v.health > 0);
 	}
 
 	return (e->s.v.health > 0);
@@ -431,8 +431,6 @@ void T_Damage(gedict_t *targ, gedict_t *inflictor, gedict_t *attacker, float dam
 	float native_damage = damage; // save damage before apply any modificator
 	char *attackerteam, *targteam, *attackername, *victimname;
 	qbool tp4teamdmg = false;
-	qbool isWipeout = cvar("k_clan_arena") == 2;
-
 	//midair and instagib
 	float playerheight = 0, midheight = 0;
 	qbool midair = false, inwater = false, do_dmg = false, rl_dmg = false, stomp_dmg = false;
@@ -459,57 +457,6 @@ void T_Damage(gedict_t *targ, gedict_t *inflictor, gedict_t *attacker, float dam
 		}
 	}
 
-	if (isCA())
-	{
-		if (dtWATER_DMG == targ->deathtype		// No drowning in CA
-				|| dtFALL == targ->deathtype)	// No fall damage in CA
-		{
-			return;
-		}
-		// ignore almost all damage in CA while coutdown
-		else if (match_in_progress && (ra_match_fight != 2))
-		{
-			if (!(dtTELE1 == targ->deathtype	// always do tele damage
-				|| dtTELE2 == targ->deathtype	// always do tele damage
-				|| dtTELE3 == targ->deathtype	// always do tele damage
-				|| dtSUICIDE == targ->deathtype)) // do suicide damage anyway
-			{
-				return;
-			}
-		}
-		
-		// don't accept any damage in CA modes if no_pain is true 
-		if ((targ->no_pain || (attacker->no_pain && attacker->in_play)) && (match_in_progress == 2))
-		{	
-			if (attacker == targ)
-			{
-				tp4teamdmg = true; // don't take damage but still get stopped/bounced by weapon fire
-			}
-			else 
-			{
-				if (targ->in_play && (targ->invincible_sound < g_globalvars.time) && strneq(targteam, attackerteam))
-				{
-					sound(targ, CHAN_AUTO, "items/protect3.wav", 0.75, ATTN_NORM);
-					targ->invincible_sound = g_globalvars.time + 2;
-				}
-	
-				return;
-			}
-		}
-
-		// Wipeout solo players only:
-		// damage was taken, so reset regen timer if one was started
-		if (isWipeout && targ->is_solo && targ->regen_timer && attacker != targ)
-		{
-			// allow a second of forgiveness, otherwise the same fight
-			// that started the timer might also stop it.
-			if (g_globalvars.time - targ->regen_timer > 1.0)
-			{
-				stuffcmd(targ, "play boss2/idle.wav\n");
-				targ->regen_timer = 0;
-			}
-		}
-	}
 
 	if ((int)cvar("k_midair"))
 	{
@@ -553,7 +500,7 @@ void T_Damage(gedict_t *targ, gedict_t *inflictor, gedict_t *attacker, float dam
 
 	// in teamplay 4 we do no armor or health damage to teammates (unless telefrag), but do apply velocity changes
 	if (tp_num()
-			== 4&& streq(targteam, attackerteam) && ( isCA() || targ != attacker ) && !TELEDEATH(targ))
+			== 4 && streq(targteam, attackerteam) && targ != attacker && !TELEDEATH(targ))
 	{
 		tp4teamdmg = true;
 	}

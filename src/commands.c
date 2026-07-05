@@ -209,7 +209,6 @@ void iplist(void);
 void dmgfrags(void);
 void no_lg(void);
 void no_gl(void);
-void latejoin(void);
 void mv_cmd_playback(void);
 void mv_cmd_record(void);
 void mv_cmd_stop(void);
@@ -221,7 +220,6 @@ void ToggleExclusive(void);
 void ToggleNewCoopNm(void);
 void ToggleVwep(void);
 void TogglePause(void);
-void ToggleArena(void);
 
 void Spawn666Time(void);
 
@@ -453,7 +451,6 @@ const char CD_NODESC[] = "no desc";
 #define CD_HDPTOGGLE		"toggle allow handicap"
 #define CD_HANDICAP			"toggle handicap level"
 #define CD_NOWEAPON			"toggle allow any weapon"
-#define CD_LATEJOIN			"join a team after the game started"
 #define CD_CAM				"camera help text"
 #define CD_TRACKLIST		"trackers list"
 #define CD_FPSLIST			"fps list"
@@ -567,15 +564,6 @@ const char CD_NODESC[] = "no desc";
 #define CD_DINFO			"show demo info"
 #define CD_LOCK				"temporary lock server"
 #define CD_SWAPALL			"swap teams for ctf"
-// { RA
-#define CD_RA_BREAK			"toggle RA line status"
-#define CD_RA_POS			"RA line position"
-#define CD_ARENA			"toggle rocket arena"
-// }
-// { Clan Arena
-#define CD_CARENA			"toggle clan arena"
-#define CD_WIPEOUT			"toggle wipeout"
-// }
 // { ToT
 #define CD_TOT				"toggle Tribe of Tjernobyl mode"
 // }
@@ -806,9 +794,7 @@ cmd_t cmds[] =
 	{ "3on3on3", 					DEF(UserMode), 					9, 			CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS, 									CD_3ON3ON3 },
 	{ "4on4on4", 					DEF(UserMode), 					10, 		CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS, 									CD_4ON4ON4 },
 	{ "XonX", 						DEF(UserMode), 					11, 		CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS, 									CD_XONX },
-	{ "wipeout", 					DEF(UserMode), 					12, 		CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS, 									CD_WIPEOUT },
-	{ "carena", 					DEF(UserMode), 					13, 		CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS, 									CD_CARENA },
-	{ "tot", 					DEF(UserMode), 					14, 		CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS, 									CD_TOT },
+	{ "tot", 					DEF(UserMode), 					12, 		CF_PLAYER | CF_SPC_ADMIN | CF_PARAMS, 									CD_TOT },
 
 	{ "practice", 					TogglePractice, 				0, 			CF_PLAYER | CF_SPC_ADMIN, 												CD_PRACTICE },
 	{ "wp_reset", 					Wp_Reset, 						0, 			CF_PLAYER, 																CD_WP_RESET },
@@ -821,9 +807,7 @@ cmd_t cmds[] =
 	{ "hdptoggle", 					hdptoggle, 						0, 			CF_BOTH_ADMIN, 															CD_HDPTOGGLE },
 	{ "handicap", 					handicap, 						0, 			CF_PLAYER | CF_PARAMS | CF_MATCHLESS, 									CD_HANDICAP },
 	{ "noweapon", 					noweapon, 						0, 			CF_PLAYER | CF_PARAMS | CF_SPC_ADMIN, 									CD_NOWEAPON },
-	{ "latejoin", 					latejoin, 						0, 			CF_PLAYER | CF_PARAMS | CF_SPC_ADMIN, 									CD_LATEJOIN },
-
-	{ "cam", 						ShowCamHelp, 					0, 			CF_SPECTATOR | CF_MATCHLESS, 											CD_CAM },
+	{ "cam",						ShowCamHelp, 					0, 			CF_SPECTATOR | CF_MATCHLESS, 											CD_CAM },
 
 	{ "tracklist", 					tracklist, 						0, 			CF_BOTH | CF_MATCHLESS, 												CD_TRACKLIST },
 	{ "toggletracklist", 					toggletracklist, 						0, 			CF_BOTH | CF_MATCHLESS, 												CD_TRACKLIST },
@@ -951,12 +935,7 @@ cmd_t cmds[] =
 	{ "dlist", 						dlist, 							0, 			CF_BOTH | CF_MATCHLESS | CF_PARAMS, 									CD_DLIST },
 	{ "dinfo", 						dinfo, 							0, 			CF_BOTH | CF_MATCHLESS | CF_PARAMS, 									CD_DINFO },
 	{ "lock", 						sv_lock, 						0, 			CF_BOTH_ADMIN, CD_LOCK },
-	// { RA
-	{ "ra_break", 					ra_break, 						0, 			CF_PLAYER, 																CD_RA_BREAK },
-	{ "ra_pos", 					ra_PrintPos, 					0, 			CF_PLAYER, 																CD_RA_POS },
-	{ "arena", 						ToggleArena, 					0, 			CF_PLAYER | CF_SPC_ADMIN, 												CD_ARENA },
-	// }
-	{ "force_spec", 				force_spec, 					0, 			CF_BOTH_ADMIN | CF_PARAMS, 												CD_FORCE_SPEC },
+	{ "force_spec",				force_spec, 					0, 			CF_BOTH_ADMIN | CF_PARAMS, 												CD_FORCE_SPEC },
 	// { bans
 	{ "ban", 						redirect, 						0, 			CF_BOTH_ADMIN | CF_MATCHLESS | CF_PARAMS | CF_REDIRECT, 				CD_BAN },
 	{ "banip", 						redirect, 						0, 			CF_BOTH_ADMIN | CF_MATCHLESS | CF_PARAMS | CF_REDIRECT, 				CD_BANIP },
@@ -3417,11 +3396,6 @@ void PrintScores(void)
 
 	if (k_showscores)
 	{
-		if (isCA())
-		{
-			CA_PrintScores();
-		}
-		else
 		{
 			int s1 = get_scores1();
 			int s2 = get_scores2();
@@ -3520,13 +3494,6 @@ void PlayerStats(void)
 	gedict_t *p, *p2;
 	char *tmp, *stats;
 	int i, pL = 0, tL = 0;
-
-	if (isRA())
-	{
-		ra_PlayerStats();
-
-		return;
-	}
 
 	if (match_in_progress != 2)
 	{
@@ -4359,54 +4326,6 @@ const char ctf_um_init[] =
 	"k_ctf_ga 1\n"					// green armor on
 ;
 
-const char wipeout_um_init[] =
-	"k_clan_arena 2\n"				// enable wipeout
-	"k_clan_arena_rounds 9\n"		// number of rounds in a series
-	"k_clan_arena_max_respawns 4\n"	// number of respawns per round
-	"coop 0\n"						// no coop
-	"dp 0\n"						// don't drop packs
-	"teamplay 4\n"
-	"deathmatch 5\n"
-	"timelimit 0\n"					// no time limit
-	"maxclients 8\n"				// no more than 8 players in ca/wipeout
-	"k_maxclients 8\n"				// no more than 8 players in ca/wipeout
-	"k_pow 0\n"
-	"k_overtime 0\n"
-	"k_spectalk 1\n"				// enable spec talk by default
-	"k_exttime 0\n"					// zero overtime length
-	"k_spw 1\n"						// KT Safety spawns (important for CA)
-	"k_dmgfrags 1\n"				// 1 "frag" for every 100 damage dealt
-	"k_teamoverlay 1\n"				// enable teamoverlay by default
-	"k_membercount 1\n"				// no minimum team size
-	"k_noitems 1\n"					// no items on the map
-	"k_lockmin 1\n"					// minimum number of teams
-	"k_lockmax 2\n"					// maximum number of teams
-	"k_mode 2\n"
-;
-
-const char carena_um_init[] =
-	"k_clan_arena 1\n"				// enable clan arena
-	"k_clan_arena_rounds 9\n"		// number of rounds in a series
-	"k_clan_arena_max_respawns 0\n"	// number of respawns per round
-	"dp 0\n"						// don't drop packs
-	"teamplay 4\n"
-	"deathmatch 5\n"
-	"timelimit 0\n"					// no time limit
-	"maxclients 8\n"				// no more than 8 players in ca/wipeout
-	"k_maxclients 8\n"				// no more than 8 players in ca/wipeout
-	"k_pow 0\n"
-	"k_overtime 0\n"
-	"k_spectalk 1\n"				// enable spec talk by default
-	"k_exttime 0\n"					// zero overtime length
-	"k_spw 1\n"						// KT Safety spawns (important for CA)
-	"k_dmgfrags 1\n"				// 1 "frag" for every 100 damage dealt
-	"k_teamoverlay 1\n"				// enable teamoverlay by default
-	"k_membercount 1\n"				// no minimum team size
-	"k_noitems 1\n"					// no items on the map
-	"coop 0\n"						// no coop
-	"k_lockmax 2\n"					// maximum number of teams
-	"k_mode 2\n"
-;
 
 const char tot_um_init[] =
 	"deathmatch 4\n"
@@ -4445,8 +4364,6 @@ usermode um_list[] =
 	{ "3on3on3", 	"\225 on \225 on \225", _3on3on3_um_init, 	UM_3ON3ON3,	 0 },
 	{ "4on4on4", 	"\226 on \226 on \226", _4on4on4_um_init, 	UM_4ON4ON4,	 0 },
 	{ "XonX", 		"X on X", 				_XonX_um_init, 		UM_XONX,	 0 },
-	{ "wipeout", 	"Wipeout", 				wipeout_um_init, 	UM_4ON4,	 0 },
-	{ "ca", 		"Clan Arena", 			carena_um_init, 	UM_4ON4,	 0 },
 	{ "tot", 		"Tribe of Tjernobyl", 			tot_um_init, 	UM_FFA,	 0 },
 };
 
@@ -5219,96 +5136,6 @@ void no_gl(void)
 	stuffcmd_flags(self, STUFFCMD_IGNOREINDEMO, "cmd noweapon gl\n");
 }
 
-void latejoin(void)
-{
-	int till;
-	char arg_2[1024];
-	gedict_t *p, *electguard;
-	int team_players = 0, other_team_players = 0;
-	
-	if (!match_in_progress) {
-		return;
-	}
-
-	if (!isCA()) {
-		G_sprint(self, 2, "Late-join requests are only allowed during CA or Wipeout.\n");
-		return;
-	}
-
-	if (self->ca_ready) {
-		G_sprint(self, 2, "You're already on a team.\n");
-		return;
-	}
-	
-	// Check if player is already being elected
-	if (is_elected(self, etLateJoin)) {
-		G_bprint(2, "%s %s!\n", self->netname, redtext("aborts late join request"));
-		AbortElect();
-		return;
-	}
-	
-	// Check if any election is in progress
-	if (get_votes(OV_ELECT)) {
-		G_sprint(self, 2, "An election is already in progress\n");
-		return;
-	}
-	
-	// Check election timeout
-	if ((till = Q_rint(self->v.elect_block_till - g_globalvars.time)) > 0) {
-		G_sprint(self, 2, "Wait %d second%s!\n", till, count_s(till));
-		return;
-	}
-	
-	// Get team argument
-	if (trap_CmdArgc() < 2) {
-		G_sprint(self, 2, "Usage: latejoin <team>\n");
-		G_sprint(self, 2, "Available teams: %s, %s \n", cvar_string("_k_team1"), cvar_string("_k_team2"));
-		return;
-	}
-	
-	trap_CmdArgv(1, arg_2, sizeof(arg_2));
-	
-	// Validate team name
-	if (!streq(arg_2, cvar_string("_k_team1")) && !streq(arg_2, cvar_string("_k_team2"))) {
-		G_sprint(self, 2, "Invalid team. Must be %s or %s \n", cvar_string("_k_team1"), cvar_string("_k_team2"));
-		return;
-	}
-	
-	// Count players on each team
-	for (p = world; (p = find_plr(p));) {
-		if (p->ca_ready) {
-			if (streq(getteam(p), arg_2)) {
-				team_players++;
-			} else {
-				other_team_players++;
-			}
-		}
-	}
-	
-	if (team_players > other_team_players) {
-		G_sprint(self, 2, "Team %s already has more players\n", arg_2);
-		return;
-	}
-	
-	// Store the requested team for later use
-	snprintf(self->ljteam, sizeof(self->ljteam), "%s", arg_2);
-	//self->ljteam = arg_2;
-	
-	// Start the election
-	self->v.elect = 1;
-	self->v.elect_type = etLateJoin;
-	
-	G_bprint(2, "%s has requested to %s team \x90%s\x91\n", 
-		self->netname, redtext("late-join"), arg_2);
-	G_bprint(2, "Team \x90%s\x91 members: type %s to approve\n", arg_2, redtext("yes"));
-	
-	// Spawn election timeout entity
-	electguard = spawn();
-	electguard->s.v.owner = EDICT_TO_PROG(world);
-	electguard->classname = "electguard";
-	electguard->think = (func_t) ElectThink;
-	electguard->s.v.nextthink = g_globalvars.time + 30; // 30 second timeout
-}
 
 void tracklist(void)
 {
@@ -6641,15 +6468,6 @@ char* lastscores2str(lsType_t lst)
 		case lsCTF:
 			return "CTF";
 
-		case lsRA:
-			return "RA";
-		
-		case lsCA:
-			return "Clan Arena";
-
-		case lsWO:
-			return "Wipeout";
-
 		case lsRACE:
 			return "race";
 
@@ -6682,9 +6500,9 @@ void lastscore_add(void)
 
 	e1 = e2 = e3 = extra = "";
 
-	if ((isRA() || isFFA()) && ed1 && ed2)
+	if (isFFA() && ed1 && ed2)
 	{ // not the best way since get_ed_scores do not serve ghosts, so...
-		lst = (isRA() ? lsRA : lsFFA);
+		lst = lsFFA;
 		e1 = getname(ed1);
 		s1 = ed1->s.v.frags;
 		e2 = getname(ed2);
@@ -6710,14 +6528,9 @@ void lastscore_add(void)
 			}
 		}
 	}
-	else if ((isTeam() || isCTF() || isCA()) && k_showscores)
+	else if ((isTeam() || isCTF()) && k_showscores)
 	{
-		qbool isCa = isCA();
-		if (isCa)
-		{
-			lst = cvar("k_clan_arena") == 2 ? lsWO : lsCA;
-		}
-		else if (isTeam())
+		if (isTeam())
 		{
 			lst = lsTeam;
 		}
@@ -6727,9 +6540,9 @@ void lastscore_add(void)
 		}
 
 		e1 = cvar_string("_k_team1");
-		s1 = isCa ? CA_get_score_1() : get_scores1();
+		s1 = get_scores1();
 		e2 = cvar_string("_k_team2");
-		s2 = isCa ? CA_get_score_2() : get_scores2();
+		s2 = get_scores2();
 
 		// players from first team
 		for (t1[0] = from = 0, p = world; (p = find_plrghst(p, &from));)
@@ -6871,7 +6684,7 @@ void lastscores(void)
 		// generally show members one time while show scores for each played map,
 		// but if squad changed from previuos map, show members again,
 		// so we know which squad played each map.
-		if (extended && ((cur == lsTeam) || (cur == lsCTF) || (cur == lsCA)))
+		if (extended && ((cur == lsTeam) || (cur == lsCTF)))
 		{
 			if (strneq(lt1, t1)) // first team
 			{
@@ -8685,53 +8498,6 @@ void WillPause(void)
 	trap_setpause(1);
 }
 
-void ToggleArena(void)
-{
-	if (!is_rules_change_allowed())
-	{
-		return;
-	}
-
-	if (!isRA())
-	{
-		// seems we trying turn RA on.
-		if (!isDuel())
-		{
-			G_sprint(self, 2, "Set %s mode first\n", redtext("\223 on \223"));
-
-			return;
-		}
-	}
-
-	cvar_toggle_msg(self, "k_rocketarena", redtext("Rocket Arena"));
-
-	if (isRA())
-	{
-		char buf[1024 * 4];
-		char *cfg_name;
-
-		char *um = "1on1";
-
-		cfg_name = va("configs/usermodes/%s/ra/default.cfg", um);
-		if (can_exec(cfg_name))
-		{
-			trap_readcmd(va("exec %s\n", cfg_name), buf, sizeof(buf));
-			G_cprint("%s", buf);
-		}
-
-		cfg_name = va("configs/usermodes/%s/ra/%s.cfg", um, mapname);
-		if (can_exec(cfg_name))
-		{
-			trap_readcmd(va("exec %s\n", cfg_name), buf, sizeof(buf));
-			G_cprint("%s", buf);
-		}
-
-		G_cprint("\n");
-
-		// avoid spawn bug with safe spawn mode
-		cvar_fset("k_spw", 1);
-	}
-}
 
 void Spawn666Time(void)
 {
@@ -9377,9 +9143,6 @@ void ListGameModes(void)
 		"instagib",
 		"berzerk",
 		"lgcmode",
-		"arena",
-		"carena",
-		"wipeout",
 		"yawnmode",
 		"totmode",
 	};

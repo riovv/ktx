@@ -89,18 +89,6 @@ qbool vw_enabled;				// vweps enabled
 
 float k_sv_locktime;			// some time before players can't connect, spectators not affected
 
-// { rocket arena
-
-float time_to_start;			// time to start match
-int ra_match_fight;				// have winner and loser fighting
-
-// }
-
-// { clan arena
-
-int ca_round_pause;
-
-// }
 
 int jumpf_flag;					// falling velocity criteria
 

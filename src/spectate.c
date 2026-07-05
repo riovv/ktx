@@ -376,10 +376,6 @@ void SpectatorThink(void)
 		Print_Wp_Stats();
 	}
 
-	if (isCA())
-	{
-		CA_spectator_think();
-	}
 
 #ifdef BOT_SUPPORT
 	if (self->s.v.goalentity)

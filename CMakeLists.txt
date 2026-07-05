@@ -25,7 +25,6 @@ set(SRC_NATIVE
 set(SRC_COMMON
 	"${DIR_SRC}/g_main.c"
 	"${DIR_SRC}/admin.c"
-	"${DIR_SRC}/arena.c"
 	"${DIR_SRC}/bot_aim.c"
 	"${DIR_SRC}/bot_blocked.c"
 	"${DIR_SRC}/bot_botenemy.c"
@@ -51,7 +50,6 @@ set(SRC_COMMON
 	"${DIR_SRC}/bot_world.c"
 	"${DIR_SRC}/buttons.c"
 	"${DIR_SRC}/captain.c"
-	"${DIR_SRC}/clan_arena.c"
 	"${DIR_SRC}/client.c"
 	"${DIR_SRC}/combat.c"
 	"${DIR_SRC}/commands.c"

@@ -848,10 +848,6 @@ void player_pain(struct gedict_s *attacker, float take)
 		return; // no pain at all in prewar
 	}
 
-	if (isCA() && (streq(getteam(self), getteam(attacker)) || self->no_pain))
-	{
-		return; // No pain when shooting teammates in CA or when respawning (wipeout)
-	}
 
 	if (self->s.v.weaponframe)
 	{
@@ -1140,8 +1136,6 @@ void PlayerBreak(void);
 
 void PlayerDie(void)
 {
-	self->ca_alive = false;
-
 	if (!self->isBot && tot_mode_enabled() && FrogbotBreakOnDeath())
 	{
 		PlayerBreak();
@@ -1194,8 +1188,7 @@ void PlayerDie(void)
 		self->s.v.velocity[2] = self->s.v.velocity[2] + g_random() * 300;
 	}
 
-	if ((self->s.v.health < -40) || (dtSQUISH == self->deathtype) || (dtSUICIDE == self->deathtype)
-			|| isRA())
+	if ((self->s.v.health < -40) || (dtSQUISH == self->deathtype) || (dtSUICIDE == self->deathtype))
 	{
 		GibPlayer();
 

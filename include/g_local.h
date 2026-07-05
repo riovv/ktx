@@ -191,9 +191,6 @@ typedef enum
 	lsTeam,
 	lsFFA,
 	lsCTF,
-	lsRA, // note no correspoding gameType_t for lsType
-	lsCA,
-	lsWO,
 	lsRACE
 } lsType_t; // lastscores type
 
@@ -829,54 +826,6 @@ void VoteAdmin(void);
 void PlayerStopFire(gedict_t *p);
 void do_force_spec(gedict_t *p, gedict_t *admin, qbool spec);
 
-// arena.c
-
-void ra_init_que(void);
-gedict_t* ra_que_first(void);
-void ra_in_que(gedict_t *p);
-void ra_out_que(gedict_t *p);
-qbool ra_isin_que(gedict_t *p);
-int ra_pos_que(gedict_t *p);
-qbool isRA(void); // not game mode, but just modificator of duel
-qbool isWinner(gedict_t *p);
-qbool isLoser(gedict_t *p);
-gedict_t* getWinner(void);
-gedict_t* getLoser(void);
-void ra_ClientDisconnect(void);
-void ra_ClientObituary(gedict_t *targ, gedict_t *attacker);
-void ra_PutClientInServer(void);
-void RocketArenaPre(void);
-qbool readytostart(void);
-void ra_Frame(void);
-void setfullwep(gedict_t *anent);
-void setnowep(gedict_t *anent);
-
-// { ra commands
-void ra_PlayerStats(void);
-void ra_PrintPos(void);
-void ra_break(void);
-// }
-
-// clan_arena.c
-
-qbool isCA(void);
-qbool CA_CheckAlive(gedict_t *p);
-int CA_wins_required(void);
-int CA_count_ready_players(void);
-int CA_get_score_1(void);
-int CA_get_score_2(void);
-void SM_PrepareCA(void);
-void CA_ClientObituary(gedict_t *targ, gedict_t *attacker);
-void CA_MatchBreak(void);
-void CA_PrintScores(void);
-void CA_TeamsStats(void);
-void CA_player_pre_think(void);
-void CA_spectator_think(void);
-void CA_Frame(void);
-void CA_PutClientInServer(void);
-void CA_AddLatePlayer(gedict_t *p, char *team);
-qbool CA_can_fire(gedict_t *p);
-
 // captain.c
 
 int capt_num(gedict_t *p);
@@ -1019,19 +968,6 @@ extern float k_sv_locktime; // some time before players can't connect, spectator
 
 extern qbool vw_available; // vwep extension available
 extern qbool vw_enabled; // vweps enabled
-
-// { rocket arena
-
-extern float time_to_start;	//time to start match
-extern int ra_match_fight;	// have winner and loser fighting
-
-// }
-
-// { clan arena
-
-extern int ca_round_pause;
-
-// }
 
 extern int jumpf_flag; // falling velocity criteria
 

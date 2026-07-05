@@ -422,7 +422,7 @@ void UpdateGoal(gedict_t *self)
 		}
 	}
 
-	if (teamplay && !isRA())
+	if (teamplay)
 	{
 		gedict_t *search_entity = HelpTeammate();
 

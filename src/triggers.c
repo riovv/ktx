@@ -720,10 +720,7 @@ void teleport_touch(void)
 		return;
 	}
 
-	if (isRA() && !isWinner(other) && !isLoser(other))
-	{
-		return;
-	}
+
 
 	if (isRACE() && race_handle_event(other, self, "touch"))
 	{

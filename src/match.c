@@ -316,11 +316,6 @@ void EndMatch(float skip_log)
 		cvar_fset("sv_spectalk", 1);
 	}
 
-	if (isCA())
-	{
-		CA_MatchBreak();
-	}
-
 	if (deathmatch)
 	{
 		G_bprint(2, "The match is over\n");
@@ -360,10 +355,7 @@ void EndMatch(float skip_log)
 
 		if (is_real_match_end)
 		{
-			if (!isCA())
-			{
-				MatchEndStats();
-			}
+			MatchEndStats();
 
 			lastscore_add(); // save game result somewhere, so we can show it later
 		}
@@ -422,7 +414,7 @@ void EndMatch(float skip_log)
 	NextLevel();
 
 	// allow ready/break in bloodfest without map reloading.
-	if (k_bloodfest || isCA())
+	if (k_bloodfest)
 	{
 		match_over = 0;
 	}
@@ -678,7 +670,7 @@ void TimerThink(void)
 
 		self->s.v.nextthink = g_globalvars.time + 1;
 
-		if (k_showscores && !isCA())
+		if (k_showscores)
 		{
 			if ((current_umode < um2on2on2) || (current_umode > um4on4on4))
 			{
@@ -785,7 +777,7 @@ void SM_PrepareMap(void)
 	for (p = world; (p = nextent(p));)
 	{
 		// going for the if content record..
-		if (isRA() || isRACE() || ((deathmatch == 4) && (cvar("k_instagib") || cvar("k_midair")))
+		if (isRACE() || ((deathmatch == 4) && (cvar("k_instagib") || cvar("k_midair")))
 				|| cvar("k_noitems") || k_bloodfest)
 		{
 			if (streq(p->classname, "weapon_nailgun") || streq(p->classname, "weapon_supernailgun")
@@ -990,24 +982,8 @@ static void SM_PrepareClients(void)
 
 		p->ps.handicap = hdc; // restore player handicap
 
-		if (isRA())
-		{
-			if (isWinner(p) || isLoser(p))
-			{
-				setfullwep(p);
-			}
-
-			continue;
-		}
-
 		// ignore k_respawn() in case of coop unless bloodfest
 		if (!deathmatch && !k_bloodfest)
-		{
-			continue;
-		}
-
-		// ignore k_respawn() in case of CA
-		if (isCA())
 		{
 			continue;
 		}
@@ -1263,8 +1239,6 @@ void StartMatch(void)
 
 	SM_PrepareTeamsStats();
 
-	SM_PrepareCA();
-
 	SM_on_MatchStart();
 
 	ClearDemoMarkers();
@@ -1350,8 +1324,7 @@ void PrintCountdown(int seconds)
 //		strlcat(text, "no matchtag\n\n\n", sizeof(text));
 //	}
 
-	// useless in RA
-	if (!isRA() && !coop && !isRACE())
+	if (!coop && !isRACE())
 	{
 		strlcat(text, va("%s %2s\n", "Deathmatch", dig3(deathmatch)), sizeof(text));
 	}
@@ -1363,21 +1336,6 @@ void PrintCountdown(int seconds)
 	else if (coop)
 	{
 		mode = redtext("C O O P");
-	}
-	else if (isRA())
-	{
-		mode = redtext("RA");
-	}
-	else if (isCA())
-	{
-		if (cvar("k_clan_arena") == 2)
-		{
-			mode = redtext("Wipeout");	
-		}
-		else 
-		{
-			mode = redtext("CA");
-		}
 	}
 	else if (lgc_enabled())
 	{
@@ -1410,11 +1368,7 @@ void PrintCountdown(int seconds)
 
 	strlcat(text, va("%s %8s\n", "Mode", mode), sizeof(text));
 
-	if (isCA())
-	{
-		strlcat(text, va("%s %3s\n", "RoundWins", dig3(CA_wins_required())), sizeof(text));
-	}
-	else if (isRACE())
+	if (isRACE())
 	{
 		if (race.round_number >= race.rounds)
 		{
@@ -1473,7 +1427,7 @@ void PrintCountdown(int seconds)
 			strlcat(text, va("%s %3s\n", "TmOverlay", redtext("on")), sizeof(text));
 		}
 
-		if (!isRA() && (isTeam() || isCTF()))
+		if (isTeam() || isCTF())
 		{
 			strlcat(text, va("%s %4s\n", "Teamplay", dig3(teamplay)), sizeof(text));
 		}
@@ -1521,7 +1475,7 @@ void PrintCountdown(int seconds)
 		strlcat(text, va("%s %4s\n", "Overtime", ot), sizeof(text));
 	}
 
-	if (!isRA() && Get_Powerups() && strneq("off", Get_PowerupsStr()))
+	if (Get_Powerups() && strneq("off", Get_PowerupsStr()))
 	{
 		strlcat(text, va("%s %4s\n", "Powerups", redtext(Get_PowerupsStr())), sizeof(text));
 	}
@@ -1602,20 +1556,14 @@ void PrintCountdown(int seconds)
 
 qbool isCanStart(gedict_t *s, qbool forceMembersWarn)
 {
-	int k_lockmin = (isCA() || isRACE()) ? 2 : cvar("k_lockmin");
-	int k_lockmax = (isCA() || isRACE()) ? 2 : cvar("k_lockmax");
+	int k_lockmin = isRACE() ? 2 : cvar("k_lockmin");
+	int k_lockmax = isRACE() ? 2 : cvar("k_lockmax");
 	int k_membercount = cvar("k_membercount");
 	int i = CountRTeams();
 	int sub;
 	int nready;
 	char *txt = "";
 	gedict_t *p;
-
-	// no limits in RA
-	if (isRA())
-	{
-		return true;
-	}
 
 	// some limits in duel...
 	if (isDuel())
@@ -1766,7 +1714,7 @@ void standby_think(void)
 {
 	gedict_t *p;
 
-	if (match_in_progress == 1 && !isRA())
+	if (match_in_progress == 1)
 	{
 
 		k_standby = 1;
@@ -1921,7 +1869,6 @@ char* CompilateDemoName(void)
 {
 	static char demoname[60];
 	char date[128], *fmt;
-	char teams[MAX_CLIENTS][MAX_TEAM_NAME];
 
 	int i;
 	int players;
@@ -1929,36 +1876,7 @@ char* CompilateDemoName(void)
 	char *name, *vs;
 
 	demoname[0] = 0;
-	if (isRA())
-	{
-		strlcat(demoname, va("ra_%d", (int)CountPlayers()), sizeof(demoname));
-	}
-	else if (isCA())
-	{
-		if (cvar("k_clan_arena") == 1)
-		{
-			strlcat(demoname, "ca", sizeof(demoname));
-		}
-		else
-		{
-			strlcat(demoname, "wipeout", sizeof(demoname));
-		}
-
-		getteams(teams);
-		
-		for (vs = "_", i = 0; i < MAX_CLIENTS; i++)
-		{
-			if (strnull(teams[i]))
-			{
-				break;
-			}
-
-			strlcat(demoname, vs, sizeof(demoname));
-			strlcat(demoname, teams[i], sizeof(demoname));
-			vs = "_vs_";
-		}
-	}
-	else if (isRACE() && !race_match_mode())
+	if (isRACE() && !race_match_mode())
 	{
 		players = 0;
 
@@ -2291,8 +2209,6 @@ void StopTimer(int removeDemo)
 
 		for (p = world; (p = find_plr(p));)
 		{
-			setfullwep(p);
-
 			p->s.v.takedamage = DAMAGE_AIM;
 			p->s.v.solid = SOLID_SLIDEBOX;
 			p->s.v.movetype = MOVETYPE_WALK;
@@ -2606,7 +2522,7 @@ void PlayerReady(qbool startIdlebot)
 	}
 
 	// do not allow empty team in team mode, because it cause problems
-	if ((isTeam() || isCTF() || isCA()) && strnull(getteam(self)))
+	if ((isTeam() || isCTF()) && strnull(getteam(self)))
 	{
 		G_sprint(self, 2, "Set your %s before ready!\n", redtext("team"));
 
@@ -2757,12 +2673,6 @@ void PlayerBreak(void)
 		return;
 	}
 
-	if (isCA() && (match_in_progress == 2) && !self->ca_ready)
-	{
-		G_sprint(self, 2, "You must be in the game to vote\n");
-
-		return;
-	}
 
 	if (k_matchLess && !k_bloodfest)
 	{

@@ -25,7 +25,6 @@
 static void json_player_ctf_stats(fileHandle_t handle, player_stats_t *stats);
 static void json_player_instagib_stats(fileHandle_t handle, player_stats_t *stats);
 static void json_player_midair_stats(fileHandle_t handle, player_stats_t *stats);
-static void json_player_ra_stats(fileHandle_t handle, player_stats_t *stats);
 static void json_player_lgc_stats(fileHandle_t handle, gedict_t *player);
 
 #define STATS_VERSION_NUMBER 3
@@ -417,10 +416,7 @@ void json_player_detail(fileHandle_t handle, int player_num, gedict_t *player, c
 		json_player_midair_stats(handle, stats);
 	}
 
-	if (isRA())
-	{
-		json_player_ra_stats(handle, stats);
-	}
+
 
 	if (lgc_enabled())
 	{
@@ -629,12 +625,6 @@ static void json_player_midair_stats(fileHandle_t handle, player_stats_t *stats)
 
 	NEWLINE_CHECK(handle, any);
 	S2di(handle, INDENT6 "}");
-}
-
-static void json_player_ra_stats(fileHandle_t handle, player_stats_t *stats)
-{
-	S2di(handle, "," JSON_CR);
-	S2di(handle, INDENT6 "\"ra\": { \"wins\": %d, \"losses\": %d }", stats->wins, stats->loses);
 }
 
 static void json_player_lgc_stats(fileHandle_t handle, gedict_t *player)

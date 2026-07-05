@@ -256,13 +256,6 @@ static void TeamsStats(void)
 {
 	int i, sumfrags = 0, wasPrint = 0;
 
-	if (isCA())
-	{
-		CA_TeamsStats();
-
-		return;
-	}
-
 	// Summing up the frags to calculate team percentages
 	for (i = 0; i < min(tmStats_cnt, MAX_TM_STATS); i++)
 	{
@@ -317,14 +310,6 @@ const char* GetMode(void)
 	else if (isRACE())
 	{
 		return "race";
-	}
-	else if (isCA())
-	{
-		return "clan-arena";
-	}
-	else if (isRA())
-	{
-		return "rocket-arena";
 	}
 	else if (isDuel())
 	{
@@ -1013,13 +998,6 @@ void PlayersStats(void)
 								p2->efficiency = (p2->s.v.frags - p2->ps.ctf_points)
 										/ (p2->s.v.frags - p2->ps.ctf_points + p2->deaths) * 100;
 							}
-						}
-						else if (isRA())
-						{
-							p2->efficiency = (
-									(p2->ps.loses + p2->ps.wins) ?
-											(p2->ps.wins * 100.0f) / (p2->ps.loses + p2->ps.wins) :
-											0);
 						}
 						else
 						{

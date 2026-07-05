@@ -57,7 +57,6 @@ void SendSpecInfo(gedict_t *spec, gedict_t *target_client);
 void del_from_specs_favourites(gedict_t *rm);
 void item_megahealth_rot(void);
 
-float WO_GetSpawnRadius(vec3_t origin);
 
 extern int g_matchstarttime;
 
@@ -961,28 +960,6 @@ void ClientKill(void)
 		return; // not a player
 	}
 
-	if (isRA())
-	{
-		G_sprint(self, PRINT_HIGH, "Can't suicide in RA mode\n");
-
-		return;
-	}
-
-	if (isCA() && match_in_progress)
-	{
-		if ((ra_match_fight != 2) || ca_round_pause)
-		{
-			G_sprint (self, PRINT_HIGH, "Can't suicide at this time\n");
-
-			return;
-		}
-		else if ((ra_match_fight == 2) && !ca_round_pause)
-		{
-			self->can_respawn = false;		// No respawning after suicide in wipeout mode
-			self->seconds_to_respawn = 999; // no countdown
-		}
-	}
-
 	if (isCTF() && (match_in_progress == 2) && ((g_globalvars.time - match_start_time) < 10))
 	{
 		G_sprint(self, PRINT_HIGH, "Can't suicide during first 10 seconds of CTF match\n");
@@ -1017,14 +994,6 @@ float CheckSpawnPoint(vec3_t v)
  */
 static float GetEffectiveSpawnRadius(gedict_t *spot, float default_radius)
 {
-	if (cvar("k_clan_arena") == 2)
-	{
-		float custom_radius = WO_GetSpawnRadius(spot->s.v.origin);
-		if (custom_radius > 0)
-		{
-			return custom_radius;
-		}
-	}
 	return default_radius;
 }
 
@@ -1163,7 +1132,7 @@ gedict_t* Sub_SelectSpawnPoint(char *spawnname)
 			vec3_t v1, v2;
 			float fallback_radius;
 
-			trap_makevectors(isRA() ? spot->mangle : spot->s.v.angles); // stupid ra uses mangles instead of angles
+			trap_makevectors(spot->s.v.angles);
 
 			// Get spawn-specific radius for fallback spawn too
 			fallback_radius = GetEffectiveSpawnRadius(spot, spawn_radius);
@@ -1342,7 +1311,7 @@ qbool CanConnect(void)
 		// can't connect
 		return false;
 	}
-	else if ((cvar("k_lockmode") == 1) || isCA())
+	else if (cvar("k_lockmode") == 1)
 	{
 		// allow players in existing teams, but different behavior for team/duel/ffa/CA
 		if (isDuel() || isFFA())
@@ -1365,10 +1334,6 @@ qbool CanConnect(void)
 				// can't connect
 				return false;
 			}
-		}
-		else if (isCA())
-		{
-			// do nothing here
 		}
 		else if ((isTeam() || isCTF()))
 		{
@@ -1423,7 +1388,7 @@ qbool CanConnect(void)
 	}
 
 	// don't allow empty team in any case
-	if (tp_num() && strnull(getteam(self)) && !isCA())
+	if (tp_num() && strnull(getteam(self)))
 	{
 		G_sprint(self, 2, "Match in progress,\n"
 					"Set your team before connecting\n"
@@ -1482,24 +1447,14 @@ qbool CanConnect(void)
 
 		if (p) // found ghost entity
 		{
-			qbool isCa = isCA();
 			qbool teamEqual = streq(getteam(self), getteam(p));
 
 			// check teams only for team mode
-			if ((isTeam() || isCTF()) && !teamEqual && !isCa)
+			if ((isTeam() || isCTF()) && !teamEqual)
 			{
 				G_sprint(self, 2, "Please join your old team and reconnect\n");
 
 				return false; // _can't_ connect
-			}
-			// In CA, if current team doesn't match old team then just don't restore stats/gamestate
-			// Otherwise restore frags and set ca_ready
-			else if (isCa && !teamEqual)
-			{
-				// if player's team isn't what it was before, then he will be a "dead" player until the match is over
-				self->ca_ready = 0;
-
-				G_bprint(2, "%s entered the game\n", self->netname);
 			}
 			else
 			{
@@ -1510,13 +1465,7 @@ qbool CanConnect(void)
 				self->deaths = p->deaths;
 				self->friendly = p->friendly;
 
-				self->ca_ready = isCa ? p->ca_ready : 0; // return to the game if playing clan arena
-
-				if (isCa && !self->ca_ready)
-				{
-					G_bprint(2, "%s entered the game\n", self->netname);
-				}
-				else if (isTeam() || isCTF())
+				if (isTeam() || isCTF())
 				{
 					self->k_teamnum = p->k_teamnum; // we alredy have team in localinfo
 					G_bprint(2, "%s \220%s\221 %s %d %s%s\n", self->netname, getteam(self),
@@ -1551,11 +1500,7 @@ qbool CanConnect(void)
 	}
 	else
 	{ // ghost not found (localinfo)
-		if (isCA())
-		{
-			G_bprint(2, "%s entered the game\n", self->netname);
-		}
-		else if (isTeam() || isCTF())
+		if (isTeam() || isCTF())
 		{
 			G_bprint(2, "%s \220%s\221 %s\n", self->netname, getteam(self),
 						redtext("arrives late"));
@@ -1745,11 +1690,6 @@ void ClientConnect(void)
 		}
 	}
 
-	if (isRA())
-	{
-		ra_in_que(self); // put cleint in ra queue, so later we can move it to loser or winner
-	}
-
 	// Yawnmode: reset spawn weights at server join (can handle max MAX_SPAWN_WEIGHTS spawn points atm)
 	// Just count the spots
 	totalspots = find_cnt(FOFCLSN, "info_player_deathmatch") +
@@ -1790,12 +1730,11 @@ void PutClientInServer(void)
 
 	self->trackent = 0;
 
-	self->ca_alive = (isCA() ? CA_CheckAlive(self) : true);
 	self->deathtype = dtNONE;
 	self->classname = "player";
 	self->s.v.health = 100;
 	self->s.v.takedamage = DAMAGE_AIM;
-	self->s.v.solid = isCA() ? SOLID_NOT : SOLID_SLIDEBOX;
+	self->s.v.solid = SOLID_SLIDEBOX;
 	self->s.v.movetype = MOVETYPE_WALK;
 	self->show_hostile = 0;
 	self->s.v.max_health = 100;
@@ -1893,10 +1832,6 @@ void PutClientInServer(void)
 				"info_player_deathmatch" : streq(getteam(self), "red") ?
 				"info_player_team1_deathmatch" : "info_player_team2_deathmatch");
 		}
-		else if (isRA() && (isWinner(self) || isLoser(self)))
-		{
-			spot = SelectSpawnPoint("info_teleport_destination");
-		}
 		else
 		{
 			spot = SelectSpawnPoint("info_player_deathmatch");
@@ -1910,14 +1845,7 @@ void PutClientInServer(void)
 	VectorCopy(spot->s.v.origin, self->s.v.origin);
 	self->s.v.origin[2] += 1;
 
-	if (isRA())
-	{
-		VectorCopy(spot->mangle, self->s.v.angles);
-	}
-	else
-	{
-		VectorCopy(spot->s.v.angles, self->s.v.angles);
-	}
+	VectorCopy(spot->s.v.angles, self->s.v.angles);
 
 	self->s.v.fixangle = true;
 
@@ -1952,34 +1880,6 @@ void PutClientInServer(void)
 	{
 		race_set_one_player_movetype_and_etc(self);
 	}
-	else if (isRA())
-	{
-		if (isWinner(self) || isLoser(self))
-		{
-			if (initial_match_spawns)
-			{
-				self->spawn_effect_queued = true;
-			}
-			else
-			{
-				tele_flags |= TFLAGS_FOG_DST | TFLAGS_SND_DST;
-			}
-		}
-	}
-	else if (isCA())
-	{
-		if (ISLIVE(self))
-		{
-			if (initial_match_spawns)
-			{
-				self->spawn_effect_queued = true;
-			}
-			else
-			{
-				tele_flags |= TFLAGS_FOG_DST | TFLAGS_SND_DST;
-			}
-		}
-	}
 	else
 	{
 		if (initial_match_spawns)
@@ -1990,58 +1890,6 @@ void PutClientInServer(void)
 		{
 			tele_flags |= TFLAGS_FOG_DST | TFLAGS_SND_DST;
 		}
-	}
-
-	if (isCA())
-	{
-		CA_PutClientInServer();
-		W_SetCurrentAmmo(); // important shit, not only ammo
-		teleport_player(self, self->s.v.origin, self->s.v.angles, tele_flags);
-
-		g_globalvars.msg_entity = EDICT_TO_PROG(self);
-		WriteByte(MSG_ONE, 38 /*svc_updatestatlong*/);
-		WriteByte(MSG_ONE, 18 /*STAT_MATCHSTARTTIME*/);
-		WriteLong(MSG_ONE, g_matchstarttime);
-
-#ifdef BOT_SUPPORT
-		BotClientEntersEvent(self, spot);
-#endif
-
-		// dusty: CA/wipeout must set solid state AFTER the spawn/teleport_player()
-		// otherwise player will become "solid" while tracking other players and
-		// get hit by projectiles.
-		if (match_in_progress)
-		{
-			self->s.v.solid = self->in_play ? SOLID_SLIDEBOX : SOLID_NOT;
-		}
-		else
-		{
-			self->s.v.solid = SOLID_SLIDEBOX;
-		}
-		setorigin(self, PASSVEC3(self->s.v.origin));
-
-		return;
-	}
-
-	if (isRA())
-	{
-		ra_PutClientInServer();
-
-		// drop down to best weapon actually hold
-		if (!((int)self->s.v.weapon & (int)self->s.v.items))
-		{
-			self->s.v.weapon = W_BestWeapon();
-		}
-
-		W_SetCurrentAmmo(); // important shit, not only ammo
-
-		teleport_player(self, self->s.v.origin, self->s.v.angles, tele_flags);
-
-#ifdef BOT_SUPPORT
-		BotClientEntersEvent(self, spot);
-#endif
-
-		return;
 	}
 
 	if ((deathmatch == 4 || k_bloodfest) && (match_in_progress == 2))
@@ -2455,9 +2303,9 @@ void PlayerDeathThink(void)
 // { autospawn
 	respawn_time = (cvar("k_midair") || cvar("k_instagib")) ? 2 : 5;
 
-	if ((dtSUICIDE == self->deathtype) || isRA() || isCA())
+	if (dtSUICIDE == self->deathtype)
 	{
-		respawn_time = -999999; // force respawn ASAP if suicides or in RA mode
+		respawn_time = -999999; // force respawn ASAP if suicide
 	}
 
 	if ((g_globalvars.time - self->dead_time) > respawn_time)
@@ -2570,11 +2418,7 @@ void PlayerJump(void)
 		self->s.v.button2 = 0;
 
 		// player jumping sound
-		//crt - get rid of jump sound for spec
-		if (!isRA() || (isWinner(self) || isLoser(self)))
-		{
-			sound(self, CHAN_BODY, "player/plyrjmp8.wav", 1, ATTN_NORM);
-		}
+		sound(self, CHAN_BODY, "player/plyrjmp8.wav", 1, ATTN_NORM);
 
 		// JUMPBUG[
 		// the engine checks velocity_z and won't perform the jump if it's < zero!
@@ -2880,8 +2724,6 @@ void ClientDisconnect(void)
 			}
 		}
 	}
-
-	ra_ClientDisconnect();
 
 	if (match_in_progress == 2 && self->ct == ctPlayer)
 	{
@@ -3768,11 +3610,6 @@ void PlayerPreThink(void)
 		return;					// the think tics
 	}
 
-	if (isRA())
-	{
-		RocketArenaPre();
-	}
-
 	trap_makevectors(self->s.v.v_angle);	// is this still used
 
 	CheckRules();
@@ -3803,8 +3640,6 @@ void PlayerPreThink(void)
 		return;		// dying, so do nothing
 
 	}
-
-	CA_player_pre_think();
 
 	race_player_pre_think();
 
@@ -4454,10 +4289,6 @@ void PlayerPostThink(void)
 				self->s.v.ammo_rockets = 100 + (int)(velocity_vert_abs) % 10000 / 100;
 				self->s.v.ammo_cells = 100 + (int)(velocity_vert_abs) % 100;
 			}
-			else if (isCA())
-			{
-				// do nothing
-			}
 			else
 			{
 				self->s.v.armorvalue = 0;
@@ -4521,10 +4352,6 @@ void SendTeamInfo(gedict_t *t)
 			continue; // we pseudo speccing such player, no point to send info about him
 		}
 
-		if (isCA() && !ISLIVE(p))
-		{
-			continue; // see CA_SendTeamInfo for custom CA/wipeout teaminfo
-		}
 
 		if (strnull(nick = ezinfokey(p, "k_nick"))) // get nick, if any, do not send name, client can guess it too
 		{
@@ -4989,10 +4816,6 @@ void ClientObituary(gedict_t *targ, gedict_t *attacker)
 		return; // nothing TODO in non match
 	}
 
-	if (isCA() && (ra_match_fight != 2))
-	{
-		return; // nothing TODO in CA mode while countdown
-	}
 
 	if (targ->ct != ctPlayer)
 	{
@@ -5044,17 +4867,6 @@ void ClientObituary(gedict_t *targ, gedict_t *attacker)
 				(int)targ->s.v.armorvalue, (int)playerheight,
 				g_globalvars.time - targ->spawn_time);
 
-	if (isRA())
-	{
-		ra_ClientObituary(targ, attacker);
-
-		return;
-	}
-
-	if (isCA())
-	{
-		CA_ClientObituary(targ, attacker);
-	}
 
 	if (k_bloodfest && !targ->ready)
 	{
@@ -5129,10 +4941,7 @@ void ClientObituary(gedict_t *targ, gedict_t *attacker)
 		if (targ == attacker)
 		{
 			// killed self
-			if (!isCA())
-			{
-				targ->s.v.frags -= (dtSUICIDE == targ->deathtype ? 2 : 1);
-			}
+			targ->s.v.frags -= (dtSUICIDE == targ->deathtype ? 2 : 1);
 
 			logfrag(targ, targ);
 
@@ -5273,12 +5082,6 @@ void ClientObituary(gedict_t *targ, gedict_t *attacker)
 			if (!cvar("k_dmgfrags") && !cvar("k_midair") && !lgc_enabled())
 			{
 				// add frag only if not a case of k_dmgfrags
-				attacker->s.v.frags += 1;
-			}
-
-			if (isCA())
-			{
-				//Clan Arena give points for frags even with k_dmgfrags
 				attacker->s.v.frags += 1;
 			}
 

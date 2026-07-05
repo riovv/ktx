@@ -417,7 +417,7 @@ void BotEvadeLogic(gedict_t *self)
 	gedict_t *enemy_ = &g_edicts[self->s.v.enemy];
 
 	self->fb.bot_evade = false;
-	if (deathmatch <= 3 && !isRA())
+	if (deathmatch <= 3)
 	{
 		if (isDuel() && g_random() < CHANCE_EVADE_DUEL)
 		{
