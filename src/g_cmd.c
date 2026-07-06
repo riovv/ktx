@@ -93,6 +93,94 @@ qbool ClientCommand(void)
 	return false;
 }
 
+// "mod <cmd> [args]" — issued from the server console (or rcon), no client attached.
+// argv(0) is always "mod"; argv(1) is the subcommand. Kept separate from
+// ClientCommand()'s DoCommand()/DoCommand_Name() handlers since those assume
+// self is a valid client edict, which is never true here (self == world).
+qbool ConsoleCommand(void)
+{
+	char cmd[32];
+
+	trap_CmdArgv(1, cmd, sizeof(cmd));
+
+	if (streq(cmd, "addbot"))
+	{
+#ifdef BOT_SUPPORT
+		int skill_level = FrogbotSkillLevel();
+		char team[10] = { 0 };
+		qbool force = false;
+		int argc = trap_CmdArgc();
+		int i;
+
+		for (i = 2; i < argc; ++i)
+		{
+			char arg[32];
+
+			trap_CmdArgv(i, arg, sizeof(arg));
+
+			if (streq(arg, "force"))
+			{
+				force = true;
+			}
+			else if (isdigit(arg[0]))
+			{
+				skill_level = atoi(arg);
+			}
+			else
+			{
+				strlcpy(team, arg, sizeof(team));
+			}
+		}
+
+		if (!force && !FrogbotsCheckMapSupport())
+		{
+			G_cprint("Map %s not supported for bots (use \"mod addbot ... force\" to override)\n",
+						mapname);
+
+			return true;
+		}
+
+		FrogbotsAddbot(skill_level, team, false);
+#else
+		G_cprint("Bot support not compiled in.\n");
+#endif
+
+		return true;
+	}
+
+	if (streq(cmd, "removebots"))
+	{
+#ifdef BOT_SUPPORT
+		FrogbotsRemoveAllBots();
+#else
+		G_cprint("Bot support not compiled in.\n");
+#endif
+
+		return true;
+	}
+
+	if (streq(cmd, "status"))
+	{
+		G_cprint("match_in_progress: %d, players: %d, bots: %d\n", (int)match_in_progress,
+					(int)(CountPlayers() - CountBots()), (int)CountBots());
+
+		return true;
+	}
+
+	if (streq(cmd, "errortest"))
+	{
+		// Permanent self-test hook: proves the smoketest harness's crash/G_Error
+		// detection actually works, rather than just never firing.
+		G_Error("smoketest errortest");
+
+		return true;
+	}
+
+	G_cprint("Unknown mod command \"%s\". Usage: mod <addbot|removebots|status|errortest>\n", cmd);
+
+	return false;
+}
+
 void cmd_ack(void)
 {
 	int argc = trap_CmdArgc();

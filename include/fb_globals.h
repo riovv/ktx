@@ -366,6 +366,10 @@ qbool HasWeapon(gedict_t *player, int weapon);
 int FrogbotSkillLevel(void);
 int FrogbotHealth(void);
 int FrogbotWeapon(void);
+
+// server console "mod" command support
+void FrogbotsAddbot(int skill_level, const char *specificteam, qbool error_messages);
+void FrogbotsRemoveAllBots(void);
 int FrogbotQuadMultiplier(void);
 qbool FrogbotItemPickupBonus(void);
 qbool FrogbotEasySkillMode(void);

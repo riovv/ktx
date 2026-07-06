@@ -92,6 +92,7 @@ void G_InitGame(int levelTime, int randomSeed);
 void G_ShutDown(void);
 void StartFrame(int time);
 qbool ClientCommand(void);
+qbool ConsoleCommand(void);
 qbool ClientUserInfoChanged(int after);
 void G_EdictTouch(void);
 void G_EdictThink(void);
@@ -403,7 +404,7 @@ intptr_t VISIBILITY_VISIBLE vmMain(
 			// params like GAME_CLIENT_COMMAND, but argv(0) always "mod"
 			ClearGlobals();
 
-			return 0;		//ConsoleCommand();
+			return ConsoleCommand();
 
 		case GAME_CLIENT_SAY:
 			// called on user /say or /say_team

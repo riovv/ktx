@@ -349,7 +349,7 @@ void FrogbotsAddbot(int skill_level, const char *specificteam, qbool error_messa
 			g_edicts[entity].fb.skill.skill_level = skill_level;
 			g_edicts[entity].fb.botnumber = i;
 			trap_SetBotUserInfo(entity, "team", teamName, 0);
-			G_bprint(2, "skill &cf00%d&r\n", self->fb.skill.skill_level);
+			G_bprint(2, "skill &cf00%d&r\n", skill_level);
 			SetAttribs(&g_edicts[entity], customised_skill);
 			trap_SetBotUserInfo(entity, "k_nick", bots[i].name, 0);
 			trap_SetBotUserInfo(entity, "*skill", skill_level_str, SETUSERINFO_STAR);
@@ -428,6 +428,19 @@ static void FrogbotsRemovebot_f(void)
 	}
 
 	FrogbotsRemoveBot(lastbot);
+}
+
+void FrogbotsRemoveAllBots(void)
+{
+	int i;
+
+	for (i = 0; i < sizeof(bots) / sizeof(bots[0]); ++i)
+	{
+		if (bots[i].entity)
+		{
+			FrogbotsRemoveBot(&bots[i]);
+		}
+	}
 }
 
 static void PrintCurrentGoals(void)

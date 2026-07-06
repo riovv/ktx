@@ -4090,17 +4090,17 @@ const char tot_um_init[] =
 
 usermode um_list[] =
 {
-	{ "1on1", 		"\223 on \223", 		_1on1_um_init, 		UM_1ON1, 	 1 },
-	{ "2on2", 		"\224 on \224", 		_2on2_um_init, 		UM_2ON2, 	 2 },
-	{ "3on3", 		"\225 on \225", 		_3on3_um_init, 		UM_3ON3, 	 3 },
-	{ "4on4", 		"\226 on \226", 		_4on4_um_init, 		UM_4ON4, 	 4 },
-	{ "10on10", 	"\223\222 on \223\222", _10on10_um_init, 	UM_10ON10, 	10 },
-	{ "ffa", 		"ffa", 					ffa_um_init, 		UM_FFA, 	-1 },
-	{ "2on2on2",	"\224 on \224 on \224", _2on2on2_um_init, 	UM_2ON2ON2,	 0 },
-	{ "3on3on3", 	"\225 on \225 on \225", _3on3on3_um_init, 	UM_3ON3ON3,	 0 },
-	{ "4on4on4", 	"\226 on \226 on \226", _4on4on4_um_init, 	UM_4ON4ON4,	 0 },
-	{ "XonX", 		"X on X", 				_XonX_um_init, 		UM_XONX,	 0 },
-	{ "tot", 		"Tribe of Tjernobyl", 			tot_um_init, 	UM_FFA,	 0 },
+	{ "1on1", 		"\223 on \223", 		_1on1_um_init, 		UM_1ON1 },
+	{ "2on2", 		"\224 on \224", 		_2on2_um_init, 		UM_2ON2 },
+	{ "3on3", 		"\225 on \225", 		_3on3_um_init, 		UM_3ON3 },
+	{ "4on4", 		"\226 on \226", 		_4on4_um_init, 		UM_4ON4 },
+	{ "10on10", 	"\223\222 on \223\222", _10on10_um_init, 	UM_10ON10 },
+	{ "ffa", 		"ffa", 					ffa_um_init, 		UM_FFA },
+	{ "2on2on2",	"\224 on \224 on \224", _2on2on2_um_init, 	UM_2ON2ON2 },
+	{ "3on3on3", 	"\225 on \225 on \225", _3on3on3_um_init, 	UM_3ON3ON3 },
+	{ "4on4on4", 	"\226 on \226 on \226", _4on4on4_um_init, 	UM_4ON4ON4 },
+	{ "XonX", 		"X on X", 				_XonX_um_init, 		UM_XONX },
+	{ "tot", 		"Tribe of Tjernobyl", 			tot_um_init, 	UM_FFA },
 };
 
 int um_cnt = sizeof(um_list) / sizeof(um_list[0]);
