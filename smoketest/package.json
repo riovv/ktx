@@ -1,0 +1,11 @@
+{
+  "name": "ktx-lite-smoketest",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Headless bot-driven runtime smoketest for ktx-lite (boots MVDSV + qwprogs.dll, runs real matches, fails on crashes/G_Error).",
+  "scripts": {
+    "setup": "node setup.js",
+    "test": "node run.js",
+    "test:one": "node run.js --scenario"
+  }
+}

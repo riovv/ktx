@@ -1,0 +1,68 @@
+[
+	{
+		"name": "duel-dm4",
+		"map": "dm4",
+		"setup": [
+			"exec configs/usermodes/1on1/default.cfg",
+			"k_mode 1",
+			"timelimit 1",
+			"fraglimit 0"
+		],
+		"bots": { "count": 2, "skill": 10, "force": true },
+		"mode": "match",
+		"timelimitMinutes": 1
+	},
+	{
+		"name": "team-2on2-dm3",
+		"map": "dm3",
+		"setup": [
+			"exec configs/usermodes/2on2/default.cfg",
+			"k_mode 2",
+			"timelimit 1",
+			"fraglimit 0"
+		],
+		"bots": { "count": 4, "skill": 10, "force": true },
+		"mode": "match",
+		"timelimitMinutes": 1
+	},
+	{
+		"name": "ffa-dm6",
+		"map": "dm6",
+		"setup": [
+			"exec configs/usermodes/ffa/default.cfg",
+			"k_mode 3",
+			"timelimit 1",
+			"fraglimit 0"
+		],
+		"bots": { "count": 4, "skill": 10, "force": true },
+		"mode": "match",
+		"timelimitMinutes": 1
+	},
+	{
+		"name": "matchless-ffa",
+		"map": "aerowalk",
+		"setup": [
+			"exec configs/usermodes/matchless/default.cfg",
+			"k_matchless 1"
+		],
+		"bots": { "count": 4, "skill": 10, "force": true },
+		"mode": "timed",
+		"durationSec": 90
+	},
+	{
+		"name": "bloodfest",
+		"map": "e1m7",
+		"setup": [
+			"exec configs/usermodes/matchless/bloodfest.cfg"
+		],
+		"bots": { "count": 2, "skill": 10, "force": true },
+		"mode": "timed",
+		"durationSec": 120
+	},
+	{
+		"name": "errortest",
+		"map": "dm4",
+		"setup": [],
+		"mode": "errortest"
+	}
+]

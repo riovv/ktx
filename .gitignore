@@ -33,3 +33,7 @@ x64/*
 *.VC.db
 /.cache
 cmake-*
+
+# smoketest sandbox (assembled by smoketest/setup.js) and per-run results
+smoketest/sandbox/
+smoketest/results/
