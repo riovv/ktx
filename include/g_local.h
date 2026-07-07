@@ -175,7 +175,6 @@ typedef enum
 	um4on4,
 	um10on10,
 	umFfa,
-	umCtf,
 	um2on2on2,
 	um3on3on3,
 	um4on4on4,

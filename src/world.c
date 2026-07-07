@@ -710,7 +710,6 @@ void FirstFrame(void)
 	RegisterCvar("k_vp_nospecs"); // votes percentage for nospecs voting
 	RegisterCvar("k_vp_teamoverlay"); // votes percentage for teamoverlay voting
 	RegisterCvar("k_vp_coop");    // votes percentage for coop voting
-	RegisterCvar("k_vp_hookstyle"); // votes percentage for hookstyle voting
 	RegisterCvar("k_vp_antilag"); // votes percentage for antilag voting
 	RegisterCvar("k_no_vote_map"); // dis allow map voting in matcless mode, also disallow /next_map
 	RegisterCvar("k_vp_privategame"); // temporarily force logins on the server
@@ -816,14 +815,8 @@ void FirstFrame(void)
 	RegisterCvarEx("k_instagib_custom_models", "0");
 	RegisterCvarEx("k_cg_kb", "1");
 
-	RegisterCvar("k_rocketarena"); // rocket arena
 	RegisterCvar("k_dmgfrags");
 	RegisterCvar("k_tp_tele_death");
-// { Clan Arena
-	RegisterCvarEx("k_clan_arena", "0");
-	RegisterCvarEx("k_clan_arena_rounds", "9");
-	RegisterCvarEx("k_clan_arena_max_respawns", "0");
-// }
 // { upplayers/upspecs
 	RegisterCvar("k_allowcountchange");
 	RegisterCvar("k_maxclients");

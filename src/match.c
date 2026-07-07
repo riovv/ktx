@@ -1853,7 +1853,6 @@ char* CompilateDemoName(void)
 			clt = 0; // no
 		}
 
-		if (isTeam())
 		{
 			const char *strCurrentUmode;
 
@@ -1869,10 +1868,6 @@ char* CompilateDemoName(void)
 				// Something is wrong with current_umode. Let's use the legacy format
 				strlcat(demoname, (clt ? va("%don%d", clt, clt) : "team"), sizeof(demoname));
 			}
-		}
-		else
-		{
-			strlcat(demoname, "ctf", sizeof(demoname));
 		}
 
 		for (vs = "_", i = 0; i < MAX_CLIENTS; i++)

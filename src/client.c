@@ -779,7 +779,7 @@ void NextLevel(void)
 	gedict_t *o;
 	char *entityfile;
 
-	if (k_bloodfest || cvar("k_clan_arena"))
+	if (k_bloodfest)
 	{
 		return;
 	}
@@ -970,7 +970,7 @@ float CheckSpawnPoint(vec3_t v)
  ============
  GetEffectiveSpawnRadius
 
- Returns the effective spawn radius for a spawn point, considering wipeout custom radius
+ Returns the effective spawn radius for a spawn point
  ============
  */
 static float GetEffectiveSpawnRadius(gedict_t *spot, float default_radius)
@@ -1038,16 +1038,6 @@ gedict_t* Sub_SelectSpawnPoint(char *spawnname)
 			if ((thing->ct != ctPlayer) || ISDEAD(thing) || (thing == self))
 			{
 				continue; // ignore non player, or dead played, or self
-			}
-
-			// For wipeout mode, check line of sight before blocking spawn
-			if (cvar("k_clan_arena") == 2)
-			{
-				traceline(PASSVEC3(spot->s.v.origin), PASSVEC3(thing->s.v.origin), true, self);
-				if (g_globalvars.trace_fraction < 1)
-				{
-					continue; // Wall/obstruction between spawn and player, don't discard spawn
-				}
 			}
 
 			// k_spw 2 and 3 and 4 feature, if player is spawned not far away and run
@@ -1123,16 +1113,6 @@ gedict_t* Sub_SelectSpawnPoint(char *spawnname)
 				if ((thing->ct != ctPlayer) || ISDEAD(thing) || (thing == self))
 				{
 					continue; // ignore non player, or dead played, or self
-				}
-
-				// For wipeout mode, check line of sight before moving player
-				if (cvar("k_clan_arena") == 2)
-				{
-					traceline(PASSVEC3(spot->s.v.origin), PASSVEC3(thing->s.v.origin), true, self);
-					if (g_globalvars.trace_fraction < 1)
-					{
-						continue; // Wall/obstruction between spawn and player, don't move them
-					}
 				}
 
 				VectorMA(thing->s.v.origin, -15.0, g_globalvars.v_up, v1);
@@ -1242,7 +1222,7 @@ gedict_t* SelectSpawnPoint(char *spawnname)
 	gedict_t *spot = Sub_SelectSpawnPoint(spawnname);
 
 	// k_spw 4 feature, recheck spawn poit second time if we select same spawn point in row, so it low chance to get same spawn point
-	if ((match_in_progress == 2) && (k_lastspawn == spot) && (cvar("k_spw") == 4 || cvar("k_clan_arena") == 2))
+	if ((match_in_progress == 2) && (k_lastspawn == spot) && (cvar("k_spw") == 4))
 	{
 		self->k_lastspawn = k_lastspawn;
 		spot = Sub_SelectSpawnPoint(spawnname);

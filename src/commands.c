@@ -3865,8 +3865,6 @@ const char common_um_init[] =
 	"k_fp_spec 1\n"					// floodprot for specs
 	"dmm4_invinc_time \"\"\n"		// reset to default
 	"k_noitems \"\"\n"				// reset to default
-	"k_clan_arena 0\n"				// disable Clan Arena by default
-	"k_rocketarena 0\n"				// disable Rocket Arena by default
 	"k_freshteams 0\n"				// disable FreshTeams by default
 	"k_nosweep 0\n"					// disable nosweep by default
 	"k_spec_info 1\n"				// allow spectators receive took info during game
@@ -4225,16 +4223,6 @@ void UserMode(float umode)
 	if (streq(um, "ffa") && k_matchLess && cvar("k_use_matchless_dir"))
 	{
 		um = "matchless"; // use configs/usermodes/matchless instead of configs/usermodes/ffa in matchless mode
-	}
-
-	if (streq(um, "ctf") && bots_enabled() && !sv_invoked)
-	{
-		if (bots_enabled())
-		{
-			G_sprint(self, PRINT_HIGH, "Disable bots first with %s\n", redtext("/botcmd disable"));
-
-			return;
-		}
 	}
 
 	//for 1on1 / 2on2 / 4on4 and ffa commands manipulation
@@ -8753,7 +8741,6 @@ void ListGameModes(void)
 		"10on10",
 		"XonX",
 		"ffa",
-		"ctf",
 		"practice",
 		"midair",
 		"instagib",
