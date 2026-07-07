@@ -125,24 +125,9 @@ int FrogbotWeapon(void)
 	return (int)cvar(FB_CVAR_WEAPON);
 }
 
-int FrogbotQuadMultiplier(void)
-{
-	return (int)cvar(FB_CVAR_QUAD_MULTIPLIER);
-}
-
-qbool FrogbotItemPickupBonus(void)
-{
-	return tot_mode_enabled() && (qbool)cvar(FB_CVAR_ITEM_PICKUP_BONUS);
-}
-
 qbool FrogbotEasySkillMode(void)
 {
 	return (qbool)cvar(FB_CVAR_EASY_SKILL_MODE);
-}
-
-qbool FrogbotBreakOnDeath(void)
-{
-	return (qbool)cvar(FB_CVAR_BREAK_ON_DEATH);
 }
 
 static team_t* AddTeamToList(int *teamsFound, char *team, int topColor, int bottomColor)
@@ -326,8 +311,8 @@ void FrogbotsAddbot(int skill_level, const char *specificteam, qbool error_messa
 			{
 				strlcpy(bots[i].name, BotNameGeneric(i), sizeof(bots[i].name));
 
-				topColor = tot_mode_enabled() ? 11 : i_rnd(0, 13);
-				bottomColor = tot_mode_enabled() ? 12 : i_rnd(0, 13);
+				topColor = i_rnd(0, 13);
+				bottomColor = i_rnd(0, 13);
 			}
 
 			entity = trap_AddBot(bots[i].name, bottomColor, topColor, "base");
@@ -2234,19 +2219,6 @@ static void FrogbotsSetWeapon(void)
 	}
 }
 
-static void FrogbotsSetBreakOnDeath(void)
-{
-	if (!bots_enabled())
-	{
-		G_sprint(self, 2, "Bots are disabled by the server.\n");
-		return;
-	}
-
-	cvar_fset(FB_CVAR_BREAK_ON_DEATH, !cvar(FB_CVAR_BREAK_ON_DEATH));
-	G_sprint(self, 2, "break on death changed to \"%s\"\n", (int)cvar(FB_CVAR_BREAK_ON_DEATH) ? "on" : "off");
-
-}
-
 static void FrogbotsToggleQuad(void)
 {
 	if ((int)self->s.v.items & IT_QUAD) {
@@ -2258,56 +2230,6 @@ static void FrogbotsToggleQuad(void)
 		self->super_time = 1;
 		self->super_damage_finished = g_globalvars.time + 3600 * 20;
 	}
-}
-
-static void FrogbotsSetQuadMultiplier(void)
-{
-	if (!bots_enabled())
-	{
-		G_sprint(self, 2, "Bots are disabled by the server.\n");
-		return;
-	}
-
-	if (trap_CmdArgc() <= 2)
-	{
-		G_sprint(self, 2, "Usage: /botcmd quadmultiplier <multiplier>\n");
-		G_sprint(self, 2, "       <multiplier> must be in range %d and %d\n", 1, 10);
-		G_sprint(self, 2, "multiplier is currently \"%d\"\n", FrogbotQuadMultiplier());
-	}
-	else
-	{
-		char argument[32];
-		int new_multiplier = 0;
-		int old_multiplier = FrogbotQuadMultiplier();
-
-		trap_CmdArgv(2, argument, sizeof(argument));
-		new_multiplier = bound(1, atoi(argument), 10);
-
-		if (new_multiplier != old_multiplier)
-		{
-			cvar_fset(FB_CVAR_QUAD_MULTIPLIER, new_multiplier);
-			G_sprint(self, 2, "quad multiplier changed to \"%d\"\n", new_multiplier);
-		}
-	}
-}
-
-static void FrogbotsSetItemPickupBonus(void)
-{
-	if (!bots_enabled())
-	{
-		G_sprint(self, 2, "Bots are disabled by the server.\n");
-		return;
-	}
-
-	if (!tot_mode_enabled())
-	{
-		G_sprint(self, 2, "This is option is only available in ToT mode.\n");
-		return;
-	}
-
-	cvar_fset(FB_CVAR_ITEM_PICKUP_BONUS, !cvar(FB_CVAR_ITEM_PICKUP_BONUS));
-	G_sprint(self, 2, "item pickup bonus changed to %s\n",
-		(int)cvar(FB_CVAR_ITEM_PICKUP_BONUS) ? redtext("on") : redtext("off"));
 }
 
 static void FrogbotsSetEasySkillMode(void)
@@ -2341,10 +2263,7 @@ static frogbot_cmd_t std_commands[] =
 		{ "disable", FrogbotsDisable, "Disable frogbots" },
 		{ "health", FrogbotsSetHealth, "Set initial health for the bot" },
 		{ "weapon", FrogbotsSetWeapon, "Set which weapon the bot should use" },
-		{ "breakondeath", FrogbotsSetBreakOnDeath, "Automatically break when you die" },
 		{ "togglequad", FrogbotsToggleQuad, "Toggle quad damage" },
-		{ "quadmultiplier", FrogbotsSetQuadMultiplier, "Set quad damage multiplier" },
-		{ "itempickupbonus", FrogbotsSetItemPickupBonus, "Toggle item pickup bonus" },
 		{ "easyskillmode", FrogbotsSetEasySkillMode, "Toggle easy skill mode" }};
 
 static frogbot_cmd_t editor_commands[] =

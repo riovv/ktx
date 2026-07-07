@@ -370,10 +370,7 @@ int FrogbotWeapon(void);
 // server console "mod" command support
 void FrogbotsAddbot(int skill_level, const char *specificteam, qbool error_messages);
 void FrogbotsRemoveAllBots(void);
-int FrogbotQuadMultiplier(void);
-qbool FrogbotItemPickupBonus(void);
 qbool FrogbotEasySkillMode(void);
-qbool FrogbotBreakOnDeath(void);
 
 // botthink.qc
 void SetMarker(gedict_t *client, gedict_t *marker);
@@ -411,9 +408,6 @@ qbool HasSavedMarker(void);
 #define FB_CVAR_FREEZE_PREWAR     "k_fb_freeze_prewar"
 #define FB_CVAR_HEALTH            "k_fb_health"
 #define FB_CVAR_WEAPON            "k_fb_weapon"
-#define FB_CVAR_BREAK_ON_DEATH    "k_fb_break_on_death"
-#define FB_CVAR_QUAD_MULTIPLIER   "k_fb_quad_multiplier"
-#define FB_CVAR_ITEM_PICKUP_BONUS "k_fb_item_pickup_bonus"
 #define FB_CVAR_EASY_SKILL_MODE   "k_fb_easy_skill_mode"
 
 void BotsFireLogic(void);

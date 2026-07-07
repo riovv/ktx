@@ -1001,16 +1001,13 @@ qbool SameTeam(gedict_t *p1, gedict_t *p2);
 
 #ifndef BOT_SUPPORT
 #define bots_enabled() (false)
-// Frogbot tuning helpers are also called from mode-agnostic code (tot mode,
-// combat, item filtering). Without bot support they fall back to the same
+// Frogbot tuning helpers are also called from mode-agnostic code (combat,
+// item filtering). Without bot support they fall back to the same
 // defaults the k_fb_* cvars are registered with, so behaviour is preserved.
 #define FrogbotSkillLevel()      (10)
 #define FrogbotHealth()          (100)
 #define FrogbotWeapon()          (2)
-#define FrogbotQuadMultiplier()  (4)
-#define FrogbotItemPickupBonus() (false)
 #define FrogbotEasySkillMode()   (true)
-#define FrogbotBreakOnDeath()    (true)
 #else
 #include "fb_globals.h"
 #endif
@@ -1022,10 +1019,6 @@ void lgc_register_fire_stop(gedict_t *player);
 void lgc_register_kill(gedict_t *player);
 void lgc_register_miss(vec3_t start, gedict_t *player);
 void lgc_register_hit(vec3_t start, gedict_t *player, gedict_t *victim);
-
-#define TOT_MODE_VARIABLE "k_tot_mode"
-
-qbool tot_mode_enabled(void);
 
 // private games
 qbool is_private_game(void);

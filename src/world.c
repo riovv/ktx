@@ -893,9 +893,6 @@ void FirstFrame(void)
 	RegisterCvarEx(FB_CVAR_FREEZE_PREWAR, "0");
 	RegisterCvarEx(FB_CVAR_HEALTH, "100");
 	RegisterCvarEx(FB_CVAR_WEAPON, "2");
-	RegisterCvarEx(FB_CVAR_BREAK_ON_DEATH, "1");
-	RegisterCvarEx(FB_CVAR_QUAD_MULTIPLIER, "4");
-	RegisterCvarEx(FB_CVAR_ITEM_PICKUP_BONUS, "0");
 	RegisterCvarEx(FB_CVAR_EASY_SKILL_MODE, "1");
 
 	for (i = 0; i < MAX_CLIENTS; i++)
@@ -912,7 +909,6 @@ void FirstFrame(void)
 	RegisterCvar("k_no_scoreboard_ghosts");
 
 	RegisterCvar("k_lgcmode");
-	RegisterCvar("k_tot_mode");
 
 	// private games
 	RegisterCvarEx("k_privategame", "0");                 // whether it is currently on or off

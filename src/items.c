@@ -196,11 +196,7 @@ float T_Heal(gedict_t *e, float healamount, float ignore)
 		e->s.v.health = other->s.v.max_health;
 	}
 
-	if (FrogbotItemPickupBonus() && e->s.v.health > 300)
-	{
-		e->s.v.health = 300;
-	}
-	else if (e->s.v.health > 250)
+	if (e->s.v.health > 250)
 	{
 		e->s.v.health = 250;
 	}
@@ -305,12 +301,12 @@ void health_touch(void)
 
 	if (self->healtype == 2)	// Megahealth?  Ignore max_health...
 	{
-		if (other->s.v.health >= 250 && !FrogbotItemPickupBonus())
+		if (other->s.v.health >= 250)
 		{
 			return;
 		}
 
-		if (!T_Heal(other, FrogbotItemPickupBonus() ? 100 : self->healamount, 1))
+		if (!T_Heal(other, self->healamount, 1))
 		{
 			return;
 		}
@@ -352,7 +348,7 @@ void health_touch(void)
 	if (self->healtype == 2)
 	{
 		other->s.v.items = (int)other->s.v.items | IT_SUPERHEALTH;
-		if (deathmatch != 4 || (deathmatch == 4 && FrogbotItemPickupBonus()))
+		if (deathmatch != 4)
 		{
 			self->s.v.nextthink = g_globalvars.time + 5;
 			self->think = (func_t) item_megahealth_rot;
@@ -382,7 +378,7 @@ void item_megahealth_rot(void)
 {
 	other = PROG_TO_EDICT(self->s.v.owner);
 
-	if (other->s.v.health > other->s.v.max_health && !FrogbotItemPickupBonus())
+	if (other->s.v.health > other->s.v.max_health)
 	{
 		other->s.v.health -= 1;
 
@@ -631,22 +627,22 @@ void bound_other_ammo(void)
 {
 	if (other->s.v.ammo_shells > 100)
 	{
-		other->s.v.ammo_shells = FrogbotItemPickupBonus() ? 255 : 100;
+		other->s.v.ammo_shells = 100;
 	}
 
 	if (other->s.v.ammo_nails > 200)
 	{
-		other->s.v.ammo_nails = FrogbotItemPickupBonus() ? 255 : 200;
+		other->s.v.ammo_nails = 200;
 	}
 
 	if (other->s.v.ammo_rockets > 100)
 	{
-		other->s.v.ammo_rockets = FrogbotItemPickupBonus() ? 255 : 100;
+		other->s.v.ammo_rockets = 100;
 	}
 
 	if (other->s.v.ammo_cells > 100)
 	{
-		other->s.v.ammo_cells = FrogbotItemPickupBonus() ? 255 : 100;
+		other->s.v.ammo_cells = 100;
 	}
 }
 float RankForWeapon(float w)
@@ -960,16 +956,6 @@ void weapon_touch(void)
 		G_Error("weapon_touch: unknown classname");
 	}
 
-	if (FrogbotItemPickupBonus() && (
-		!strcmp(self->classname, "weapon_rocketlauncher") ||
-		!strcmp(self->classname, "weapon_lightning")))
-	{
-		if (!T_Heal(other, 100, 1))
-		{
-			return;
-		}
-	}
-
 	TookWeaponHandler(other, new, false);
 	mi_print(other, new, va("%s got %s", getname(other), self->netname));
 
@@ -1233,23 +1219,13 @@ void ammo_touch(void)
 	}
 	else if (weapon == 3) // rockets
 	{
-		if (FrogbotItemPickupBonus())
+		if (other->s.v.ammo_rockets >= 100)
 		{
-			if (!T_Heal(other, 100, 1))
-			{
-				return;
-			}
+			return;
 		}
-		else
-		{
-			if (other->s.v.ammo_rockets >= 100)
-			{
-				return;
-			}
 
-			real_ammo = other->s.v.ammo_rockets;
-			other->s.v.ammo_rockets += ammo;
-		}
+		real_ammo = other->s.v.ammo_rockets;
+		other->s.v.ammo_rockets += ammo;
 	}
 	else if (weapon == 4) // cells
 	{
@@ -2158,7 +2134,7 @@ void powerup_touch(void)
 		other->ps.spree_max_q = max(other->ps.spree_current_q, other->ps.spree_max_q);
 		other->ps.spree_current_q = 0;
 
-		if (deathmatch == 4 && !tot_mode_enabled())
+		if (deathmatch == 4)
 		{
 			other->s.v.armortype = 0;
 			other->s.v.armorvalue = 0;
@@ -2417,7 +2393,7 @@ void BackpackTouch(void)
 
 		stuffcmd(other, "bf\n");
 
-		if ((lgc_enabled() || tot_mode_enabled()) && (other->s.v.health > 299))
+		if (lgc_enabled() && (other->s.v.health > 299))
 		{
 			// cap & don't allow bonus powers
 			other->s.v.health = 300;

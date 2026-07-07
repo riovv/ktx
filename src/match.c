@@ -803,11 +803,7 @@ void SM_PrepareMap(void)
 
 		if (deathmatch >= 4)
 		{
-			int disallowed_weapons = (int)cvar("k_disallow_weapons") & DA_WPNS;
-
-			// no weapons for any of this deathmatches (4 or 5),
-			// unless ToT mode with item pickup bonus is enabled and
-			// the weapon isn't disallowed.
+			// no weapons for any of this deathmatches (4 or 5)
 			if (streq(p->classname, "weapon_nailgun"))
 			{
 				soft_ent_remove(p);
@@ -828,16 +824,12 @@ void SM_PrepareMap(void)
 				soft_ent_remove(p);
 				continue;
 			}
-			else if (streq(p->classname, "weapon_rocketlauncher") &&
-				(!FrogbotItemPickupBonus() ||
-				(disallowed_weapons & IT_ROCKET_LAUNCHER)))
+			else if (streq(p->classname, "weapon_rocketlauncher"))
 			{
 				soft_ent_remove(p);
 				continue;
 			}
-			else if (streq(p->classname, "weapon_lightning") &&
-				(!FrogbotItemPickupBonus() ||
-				(disallowed_weapons & IT_LIGHTNING)))
+			else if (streq(p->classname, "weapon_lightning"))
 			{
 				soft_ent_remove(p);
 				continue;
@@ -856,8 +848,7 @@ void SM_PrepareMap(void)
 					soft_ent_remove(p);
 					continue;
 				}
-				else if (streq(p->classname, "item_rockets") &&
-					!FrogbotItemPickupBonus())
+				else if (streq(p->classname, "item_rockets"))
 				{
 					soft_ent_remove(p);
 					continue;
@@ -867,9 +858,8 @@ void SM_PrepareMap(void)
 					soft_ent_remove(p);
 					continue;
 				}
-				else if ((streq(p->classname, "item_health") &&
-					((int)p->s.v.spawnflags & H_MEGA)) &&
-					!FrogbotItemPickupBonus())
+				else if (streq(p->classname, "item_health") &&
+					((int)p->s.v.spawnflags & H_MEGA))
 				{
 					soft_ent_remove(p);
 					continue;
@@ -1476,22 +1466,6 @@ void PrintCountdown(int seconds)
 		strlcat(text, "\n"
 				"Handicap in use\n",
 				sizeof(text));
-	}
-
-	if (tot_mode_enabled())
-	{
-		int weapon = FrogbotWeapon();
-		strlcat(text, va("\nTribe of Tjernobyl mode %2s\n", redtext("on")), sizeof(text));
-		strlcat(text, va("Break on death %11s\n",
-			FrogbotBreakOnDeath() ? redtext("on") : redtext("off")),
-			sizeof(text));
-		strlcat(text, va("Bot weapon %15s\n", redtext(weapon ? WpName(weapon) : "random")), sizeof(text));
-		strlcat(text, va("Bot health %15s\n", dig3(FrogbotHealth())), sizeof(text));
-		strlcat(text, va("Bot skill %16s\n", dig3(FrogbotSkillLevel())), sizeof(text));
-		strlcat(text, va("Quad damage multiplier %3s\n", dig3(FrogbotQuadMultiplier())), sizeof(text));
-		strlcat(text, va("Item Pickup Bonus %8s\n",
-			redtext(FrogbotItemPickupBonus() ? "on": "off")), sizeof(text));
-
 	}
 
 	if (CountBots() >= 1)

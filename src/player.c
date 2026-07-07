@@ -1060,11 +1060,6 @@ void PlayerBreak(void);
 
 void PlayerDie(void)
 {
-	if (!self->isBot && tot_mode_enabled() && FrogbotBreakOnDeath())
-	{
-		PlayerBreak();
-	}
-
 	DropPowerups();
 
 	TeamplayDeathEvent(self);
